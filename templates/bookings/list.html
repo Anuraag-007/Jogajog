@@ -1,0 +1,58 @@
+{% extends "base.html" %}
+{% block title %}My Bookings – Jogajog{% endblock %}
+{% block extra_css %}
+<style>
+  .bookings-wrap{max-width:800px;margin:24px auto 80px;padding:0 16px;}
+  .page-title{font-family:'Baloo 2',cursive;font-size:1.4rem;font-weight:800;color:var(--grey-900);margin-bottom:16px;}
+  .booking-card{background:var(--white);border-radius:16px;padding:16px;margin-bottom:12px;box-shadow:0 4px 14px rgba(0,0,0,0.05);display:flex;gap:14px;align-items:flex-start;}
+  .booking-icon{width:48px;height:48px;border-radius:12px;background:var(--sky-faint);display:flex;align-items:center;justify-content:center;font-size:1.4rem;flex-shrink:0;}
+  .booking-info{flex:1;min-width:0;}
+  .booking-vendor{font-weight:700;font-size:0.9rem;color:var(--grey-900);margin-bottom:3px;}
+  .booking-detail{font-size:0.78rem;color:var(--grey-500);margin-bottom:6px;}
+  .status-badge{border-radius:20px;padding:4px 12px;font-size:0.7rem;font-weight:700;display:inline-block;}
+  .s-pending{background:#fef9c3;color:#854d0e;}
+  .s-confirmed{background:var(--sky-light);color:var(--sky-deep);}
+  .s-completed{background:#dcfce7;color:#166534;}
+  .s-cancelled{background:#fee2e2;color:#991b1b;}
+  .empty-state{text-align:center;padding:48px 24px;color:var(--grey-500);}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="bookings-wrap">
+  <div class="page-title">📅 My Bookings</div>
+  {% if bookings %}
+  {% for booking in bookings %}
+  <div class="booking-card">
+    <div class="booking-icon">{{ booking.vendor.category.icon if booking.vendor.category else '📅' }}</div>
+    <div class="booking-info">
+      <div class="booking-vendor">{{ booking.vendor.business_name }}</div>
+      <div class="booking-detail">
+        📅 {{ booking.booking_date.strftime('%A, %d %B %Y') }}
+        {% if booking.booking_time %} at {{ booking.booking_time }}{% endif %}
+        {% if booking.service %}• {{ booking.service.name }}{% endif %}
+      </div>
+      {% if booking.notes %}<div class="booking-detail">📝 {{ booking.notes }}</div>{% endif %}
+      <div class="booking-detail">Booked on {{ booking.created_at.strftime('%d %b %Y') }}</div>
+      <div style="display:flex;align-items:center;gap:10px;margin-top:6px;flex-wrap:wrap;">
+        <span class="status-badge s-{{ booking.status }}">{{ booking.status|upper }}</span>
+        {% if booking.status in ['pending', 'confirmed'] %}
+        <form action="{{ url_for('bookings.cancel', booking_id=booking.id) }}" method="POST" style="display:inline;" onsubmit="return confirm('Cancel this booking?')">
+          <button type="submit" style="background:#fee2e2;color:#991b1b;border:none;border-radius:20px;padding:4px 12px;font-size:0.7rem;font-weight:700;cursor:pointer;">Cancel</button>
+        </form>
+        {% endif %}
+        <a href="{{ url_for('vendor.profile', vendor_id=booking.vendor_id) }}" style="font-size:0.72rem;color:var(--sky-dark);font-weight:600;text-decoration:none;">View Vendor →</a>
+      </div>
+    </div>
+  </div>
+  {% endfor %}
+  {% else %}
+  <div class="empty-state">
+    <div style="font-size:2.5rem;">📅</div>
+    <p style="font-weight:700;margin-top:8px;">No bookings yet</p>
+    <p style="font-size:0.82rem;margin-top:4px;">Find a vendor and book their service</p>
+    <a href="{{ url_for('main.all_vendors') }}" style="display:inline-block;margin-top:14px;background:var(--sky);color:#fff;border-radius:40px;padding:9px 24px;font-weight:700;font-size:0.85rem;text-decoration:none;">Browse Vendors →</a>
+  </div>
+  {% endif %}
+</div>
+{% endblock %}

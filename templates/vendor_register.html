@@ -1,0 +1,297 @@
+{% extends "base.html" %}
+{% block title %}Register Your Business – Jogajog{% endblock %}
+{% block extra_css %}
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
+<style>
+  .back-nav{max-width:1280px;margin:24px auto 0;padding:0 20px;}
+  .back-link{display:inline-flex;align-items:center;gap:8px;background:var(--white);padding:8px 20px;border-radius:60px;font-weight:600;font-size:0.85rem;color:var(--sky-dark);text-decoration:none;box-shadow:0 6px 14px rgba(0,0,0,0.04);border:1px solid var(--grey-100);}
+  .back-link:hover{background:var(--sky-light);transform:translateX(-5px);transition:all 0.2s;}
+  .form-container{max-width:900px;margin:20px auto 80px;padding:0 20px;}
+  .form-card{background:var(--white);border-radius:28px;box-shadow:0 20px 35px -12px rgba(15,106,154,0.2);overflow:hidden;}
+  .form-header{background:linear-gradient(115deg,var(--sky-light) 0%,var(--white) 100%);padding:32px 40px 24px;border-bottom:2px solid rgba(41,174,230,0.2);}
+  .form-header h1{font-family:'Baloo 2',cursive;font-size:2rem;color:var(--grey-900);display:flex;align-items:center;gap:10px;flex-wrap:wrap;}
+  .form-header h1 span{background:var(--yellow);font-size:0.75rem;padding:4px 14px;border-radius:80px;font-weight:700;font-family:'Poppins',sans-serif;}
+  .form-header p{color:var(--grey-700);margin-top:10px;font-size:0.9rem;}
+  .form-body{padding:36px 40px 40px;}
+  .form-section{margin-bottom:32px;}
+  .form-section-title{font-weight:700;font-size:1rem;color:var(--sky-deep);margin-bottom:16px;padding-bottom:8px;border-bottom:2px solid var(--sky-light);display:flex;align-items:center;gap:8px;}
+  .form-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:22px 28px;}
+  .full-width{grid-column:span 2;}
+  .input-group{display:flex;flex-direction:column;gap:7px;}
+  .input-group label{font-weight:700;font-size:0.85rem;color:var(--grey-700);}
+  .required-star{color:#e06c4e;font-size:1rem;}
+  .inp{font-family:'Poppins',sans-serif;border:1.5px solid var(--grey-300);border-radius:14px;padding:13px 16px;font-size:0.88rem;background:var(--white);transition:all 0.2s;outline:none;color:var(--grey-900);width:100%;}
+  .inp:focus{border-color:var(--sky);box-shadow:0 0 0 3px rgba(41,174,230,0.15);}
+  select.inp{appearance:none;background-image:url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="%2344505f" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>');background-repeat:no-repeat;background-position:right 14px center;}
+  textarea.inp{resize:vertical;min-height:90px;}
+  .hint{font-size:0.7rem;color:var(--grey-500);}
+  .tags-container{display:flex;flex-wrap:wrap;gap:10px;margin-top:6px;}
+  .service-tag{background:var(--grey-50);border:1.5px solid var(--grey-300);border-radius:60px;padding:7px 18px;font-size:0.75rem;font-weight:600;color:var(--grey-700);cursor:pointer;transition:all 0.2s;user-select:none;}
+  .service-tag.selected{background:var(--sky);border-color:var(--sky);color:white;}
+  .toggle-row{display:flex;align-items:flex-start;gap:16px;background:var(--sky-faint);border-radius:14px;padding:14px 18px;border:1px solid var(--sky-light);}
+  .toggle-row input[type="checkbox"]{width:20px;height:20px;accent-color:var(--sky);margin-top:2px;flex-shrink:0;}
+  .toggle-label{font-size:0.87rem;}
+  .toggle-label strong{font-weight:700;display:block;color:var(--grey-900);}
+  .toggle-label small{color:var(--grey-500);font-size:0.75rem;}
+  #locationMap{width:100%;height:200px;border-radius:14px;margin-top:10px;border:1px solid var(--grey-100);}
+  .map-hint{font-size:0.75rem;color:var(--sky-dark);margin-top:5px;font-weight:600;}
+  .detect-btn{background:var(--sky-light);border:none;color:var(--sky-deep);border-radius:40px;padding:7px 16px;font-size:0.78rem;font-weight:700;cursor:pointer;font-family:'Poppins',sans-serif;margin-top:6px;}
+  .upload-area{border:2px dashed var(--grey-300);border-radius:14px;padding:18px;text-align:center;cursor:pointer;transition:all 0.2s;}
+  .upload-area:hover{border-color:var(--sky);background:var(--sky-faint);}
+  .upload-area input[type="file"]{display:none;}
+  .submit-area{margin-top:36px;text-align:center;}
+  .btn-submit{background:linear-gradient(105deg,var(--sky),var(--sky-dark));border:none;padding:16px 42px;border-radius:60px;font-weight:800;font-size:1rem;color:white;cursor:pointer;transition:all 0.25s;box-shadow:0 10px 20px rgba(41,174,230,0.35);font-family:'Poppins',sans-serif;display:inline-flex;align-items:center;gap:10px;}
+  .btn-submit:hover{transform:translateY(-4px);box-shadow:0 18px 28px rgba(41,174,230,0.4);}
+  .benefits-card{background:linear-gradient(125deg,var(--yellow-lt),var(--white));border-radius:22px;margin-top:24px;padding:18px 24px;border:1px solid var(--yellow-md);display:flex;flex-wrap:wrap;justify-content:space-between;align-items:center;gap:10px;}
+  @media(max-width:720px){.form-grid{grid-template-columns:1fr;}.full-width{grid-column:span 1;}.form-body{padding:24px 20px;}.form-header{padding:24px 20px 18px;}}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="back-nav">
+  <a href="{{ url_for('main.index') }}" class="back-link">← Back to Home</a>
+</div>
+
+<main class="form-container">
+  <div class="form-card">
+    <div class="form-header">
+      <h1>📋 Join as a Local Vendor <span>100% Free</span></h1>
+      <p>Get discovered by thousands of customers in your area. Expand your business with Jogajog – India's trusted local platform.</p>
+    </div>
+    <div class="form-body">
+      <form id="vendorRegistrationForm" action="{{ url_for('vendor.register') }}" method="POST" enctype="multipart/form-data">
+
+        <!-- BUSINESS INFO -->
+        <div class="form-section">
+          <div class="form-section-title">🏢 Business Information</div>
+          <div class="form-grid">
+            <div class="input-group">
+              <label>Business / Shop Name <span class="required-star">*</span></label>
+              <input type="text" name="business_name" class="inp" placeholder="e.g., Star Electronics, Sharma Plumbing" required>
+            </div>
+            <div class="input-group">
+              <label>Primary Category <span class="required-star">*</span></label>
+              <select name="category_id" class="inp" required>
+                <option value="" disabled selected>Select service category</option>
+                {% for cat in categories %}
+                <option value="{{ cat.id }}">{{ cat.icon }} {{ cat.name }}</option>
+                {% endfor %}
+              </select>
+            </div>
+            <div class="input-group full-width">
+              <label>About Your Business <span class="required-star">*</span></label>
+              <textarea name="description" class="inp" placeholder="Tell customers about your experience, services, and what makes you special..." required></textarea>
+            </div>
+            <div class="input-group">
+              <label>Price Range</label>
+              <input type="text" name="price_range" class="inp" placeholder="₹299 – ₹4,500  or  Free estimate">
+            </div>
+            <div class="input-group">
+              <label>Business Hours</label>
+              <input type="text" name="timings" class="inp" placeholder="Mon–Sat: 9AM – 9PM, Sun: Closed">
+            </div>
+          </div>
+        </div>
+
+        <!-- CONTACT INFO -->
+        <div class="form-section">
+          <div class="form-section-title">📞 Contact Information</div>
+          <div class="form-grid">
+            <div class="input-group">
+              <label>Mobile Number <span class="required-star">*</span></label>
+              <input type="tel" name="phone" class="inp" placeholder="+91 98765 43210" required>
+              <div class="hint">WhatsApp-enabled number recommended</div>
+            </div>
+            <div class="input-group">
+              <label>Email Address</label>
+              <input type="email" name="email" class="inp" placeholder="business@example.com">
+            </div>
+            <div class="input-group">
+              <label>Alternate / Landline</label>
+              <input type="text" name="alt_phone" class="inp" placeholder="022 1234 567">
+            </div>
+          </div>
+        </div>
+
+        <!-- LOCATION -->
+        <div class="form-section">
+          <div class="form-section-title">📍 Location & Service Areas</div>
+          <div class="form-grid">
+            <div class="input-group full-width">
+              <label>Complete Address <span class="required-star">*</span></label>
+              <textarea name="address" class="inp" placeholder="Shop/Office number, street, landmark, area..." required></textarea>
+            </div>
+            <div class="input-group">
+              <label>City <span class="required-star">*</span></label>
+              <input type="text" name="city" class="inp" placeholder="Mumbai, Delhi, Bengaluru..." required>
+            </div>
+            <div class="input-group">
+              <label>Pincode</label>
+              <input type="text" name="pincode" class="inp" placeholder="400001" maxlength="6">
+            </div>
+            <div class="input-group full-width">
+              <label>Service Areas / Localities <span class="required-star">*</span></label>
+              <input type="text" name="service_areas" class="inp" placeholder="e.g., Bandra, Khar, Santacruz, Andheri" required>
+              <div class="hint">Separate with commas</div>
+            </div>
+            <div class="input-group full-width">
+              <label>📌 Pin Your Location on Map</label>
+              <button type="button" class="detect-btn" id="detectLocBtn">📍 Auto-detect my location</button>
+              <div id="locationMap"></div>
+              <div class="map-hint">Click on map to set exact location</div>
+              <input type="hidden" name="lat" id="latInput">
+              <input type="hidden" name="lng" id="lngInput">
+            </div>
+          </div>
+        </div>
+
+        <!-- SERVICES -->
+        <div class="form-section">
+          <div class="form-section-title">🔧 Services Offered</div>
+          <div class="input-group">
+            <label>Select Services (click to add)</label>
+            <div class="tags-container" id="servicesTagsContainer"></div>
+            <input type="hidden" name="tag_services" id="tagServicesInput">
+          </div>
+        </div>
+
+        <!-- PHOTOS -->
+        <div class="form-section">
+          <div class="form-section-title">📸 Business Photos</div>
+          <div class="form-grid">
+            <div class="input-group">
+              <label>Profile / Logo Photo</label>
+              <label class="upload-area">
+                <input type="file" name="profile_image" accept="image/*" id="profileImgInput">
+                <div id="profileImgPreview">📷 Click to upload profile photo<br><span style="font-size:0.7rem;color:var(--grey-500);">JPG/PNG, max 5MB</span></div>
+              </label>
+            </div>
+            <div class="input-group">
+              <label>Shop / Work Gallery (up to 5 photos)</label>
+              <label class="upload-area">
+                <input type="file" name="gallery_images" accept="image/*" multiple id="galleryImgInput">
+                <div>🖼️ Click to upload gallery photos<br><span style="font-size:0.7rem;color:var(--grey-500);">Multiple files allowed</span></div>
+              </label>
+            </div>
+          </div>
+        </div>
+
+        <!-- FEATURE TOGGLES -->
+        <div class="form-section">
+          <div class="form-section-title">⚙️ Features & Settings</div>
+          <div style="display:flex;flex-direction:column;gap:12px;">
+            <label class="toggle-row">
+              <input type="checkbox" name="accept_bookings" id="acceptBookings">
+              <div class="toggle-label">
+                <strong>📅 Accept Online Bookings</strong>
+                <small>Customers can book your service directly from your profile. You'll receive booking requests to confirm or decline.</small>
+              </div>
+            </label>
+            <label class="toggle-row">
+              <input type="checkbox" name="enable_chat" id="enableChat">
+              <div class="toggle-label">
+                <strong>💬 Enable In-App Chat</strong>
+                <small>Customers can chat with you directly through the Jogajog app. Great for quick queries and support.</small>
+              </div>
+            </label>
+            <label class="toggle-row">
+              <input type="checkbox" name="apply_verified">
+              <div class="toggle-label">
+                <strong>⭐ Apply for "Verified Partner" Badge</strong>
+                <small>Our team will contact you for document verification. Verified vendors get 3x more inquiries!</small>
+              </div>
+            </label>
+            <label class="toggle-row">
+              <input type="checkbox" name="terms" required>
+              <div class="toggle-label">
+                <strong>I agree to Jogajog's Terms & Code of Conduct <span class="required-star">*</span></strong>
+                <small>By listing, you confirm all information is accurate and you'll provide quality service to customers.</small>
+              </div>
+            </label>
+          </div>
+        </div>
+
+        <div class="submit-area">
+          <button type="submit" class="btn-submit">✨ Submit Listing → Go Live Free!</button>
+        </div>
+      </form>
+
+      <div class="benefits-card">
+        <div style="font-weight:600;font-size:0.85rem;">📢 10,000+ local customers visit Jogajog daily • Grow your business</div>
+        <div style="background:var(--yellow);border-radius:40px;padding:6px 18px;font-weight:700;font-size:0.75rem;">⭐ No listing fees</div>
+      </div>
+    </div>
+  </div>
+</main>
+{% endblock %}
+
+{% block extra_js %}
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script>
+  // Service tags
+  const tagList = ['Home Repair','AC Service','Electrical Wiring','Plumbing Fix','Deep Cleaning','CCTV Install','Smart Home','Appliance Repair','Beauty Services','Tutoring','Catering','Pest Control','Painting','Carpentry','Security Guard','Vehicle Repair','Gardening','Babysitting','Doctor Visit','Delivery'];
+  const tagsContainer = document.getElementById('servicesTagsContainer');
+  const selectedTags = new Set();
+  tagList.forEach(tag => {
+    const div = document.createElement('div');
+    div.className = 'service-tag';
+    div.textContent = tag;
+    div.addEventListener('click', () => {
+      div.classList.toggle('selected');
+      selectedTags.has(tag) ? selectedTags.delete(tag) : selectedTags.add(tag);
+      document.getElementById('tagServicesInput').value = [...selectedTags].join(',');
+    });
+    tagsContainer.appendChild(div);
+  });
+
+  // Profile image preview
+  document.getElementById('profileImgInput').addEventListener('change', function() {
+    if (this.files[0]) {
+      const reader = new FileReader();
+      reader.onload = e => {
+        document.getElementById('profileImgPreview').innerHTML = `<img src="${e.target.result}" style="max-height:120px;border-radius:8px;object-fit:cover;">`;
+      };
+      reader.readAsDataURL(this.files[0]);
+    }
+  });
+
+  // Leaflet map for location picking
+  const map = L.map('locationMap').setView([20.5937, 78.9629], 5);
+  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+    attribution: '© OpenStreetMap contributors', maxZoom: 19
+  }).addTo(map);
+  let marker;
+  function setMarker(lat, lng) {
+    if (marker) map.removeLayer(marker);
+    marker = L.marker([lat, lng]).addTo(map);
+    document.getElementById('latInput').value = lat;
+    document.getElementById('lngInput').value = lng;
+    map.setView([lat, lng], 16);
+  }
+  map.on('click', e => setMarker(e.latlng.lat, e.latlng.lng));
+
+  // Auto-detect location
+  document.getElementById('detectLocBtn').addEventListener('click', () => {
+    if (!navigator.geolocation) return showToast('Geolocation not supported');
+    navigator.geolocation.getCurrentPosition(pos => {
+      setMarker(pos.coords.latitude, pos.coords.longitude);
+      showToast('📍 Location set on map!');
+    }, () => showToast('Could not detect location. Please click on map.'));
+  });
+
+  // Also geocode when city is typed
+  const cityInput = document.querySelector('input[name="city"]');
+  let geocodeTimer;
+  cityInput.addEventListener('input', () => {
+    clearTimeout(geocodeTimer);
+    geocodeTimer = setTimeout(() => {
+      const city = cityInput.value.trim();
+      if (city.length < 3) return;
+      fetch(`https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(city)}&format=json&limit=1`)
+        .then(r => r.json()).then(data => {
+          if (data.length) setMarker(parseFloat(data[0].lat), parseFloat(data[0].lon));
+        });
+    }, 800);
+  });
+</script>
+{% endblock %}

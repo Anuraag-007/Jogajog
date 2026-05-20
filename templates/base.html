@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <meta name="theme-color" content="#1789c0">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-title" content="Jogajog">
+  <title>{% block title %}Jogajog – Your Local Everything{% endblock %}</title>
+  <link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@400;600;700;800&family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+  {% block extra_css %}{% endblock %}
+  <style>
+    :root {
+      --sky: #29aee6; --sky-dark: #1789c0; --sky-deep: #0f6a9a;
+      --sky-light: #e3f5fd; --sky-faint: #f0faff;
+      --yellow: #f5c518; --yellow-dk: #c9a010; --yellow-lt: #fef9e3; --yellow-md: #fde87a;
+      --grey-900: #1e2230; --grey-700: #44505f; --grey-500: #8490a2;
+      --grey-300: #c4ccd8; --grey-100: #edf0f5; --grey-50: #f5f7fa; --white: #ffffff;
+      --shadow: 0 4px 18px rgba(41,174,230,0.13); --r: 18px;
+    }
+    * { margin:0; padding:0; box-sizing:border-box; }
+    body { font-family:'Poppins',sans-serif; background:var(--grey-50); color:var(--grey-900); overflow-x:hidden; }
+    .india-stripe { height:4px; background:linear-gradient(90deg,#FF9933 33.3%,#fff 33.3%,#fff 66.6%,#138808 66.6%); }
+    header { background:linear-gradient(90deg,var(--sky-deep),var(--sky-dark) 50%,var(--sky)); padding:0 14px; height:60px; display:flex; align-items:center; justify-content:space-between; position:sticky; top:0; z-index:100; box-shadow:0 3px 18px rgba(41,174,230,0.38); }
+    .logo { font-family:'Baloo 2',cursive; font-size:1.7rem; font-weight:800; color:#fff; letter-spacing:-1px; text-decoration:none; }
+    .logo span { color:var(--yellow); }
+    .logo sub { font-size:0.48rem; color:rgba(255,255,255,0.75); font-weight:400; letter-spacing:1px; vertical-align:super; font-family:'Poppins',sans-serif; }
+    .header-right { display:flex; align-items:center; gap:6px; }
+    .btn-loc { background:rgba(255,255,255,0.16); color:#fff; border:1.5px solid rgba(255,255,255,0.35); border-radius:8px; padding:5px 9px; font-size:0.75rem; cursor:pointer; font-family:'Poppins',sans-serif; }
+    .btn-hdr { background:var(--yellow); color:var(--grey-900); border:none; border-radius:8px; padding:5px 10px; font-size:0.75rem; font-weight:700; cursor:pointer; font-family:'Poppins',sans-serif; }
+    .hdr-icon { background:rgba(255,255,255,0.18); color:#fff; border:1.5px solid rgba(255,255,255,0.35); border-radius:8px; padding:5px 9px; font-size:0.75rem; font-weight:600; cursor:pointer; font-family:'Poppins',sans-serif; text-decoration:none; display:flex; align-items:center; }
+    .bnav { position:fixed; bottom:0; left:0; right:0; background:var(--white); border-top:2px solid var(--sky-light); display:flex; z-index:98; }
+    .bni { flex:1; display:flex; flex-direction:column; align-items:center; padding:8px 0 6px; font-size:0.61rem; color:var(--grey-500); cursor:pointer; gap:2px; font-weight:600; transition:color 0.14s; text-decoration:none; }
+    .bni.on { color:var(--sky-dark); }
+    .bni-icon { font-size:1.28rem; }
+    .spacer { height:78px; }
+    .wa-float { position:fixed; bottom:80px; right:18px; z-index:999; display:flex; flex-direction:column; align-items:flex-end; gap:7px; }
+    .wa-lbl { background:var(--sky-dark); color:#fff; border-radius:20px; padding:5px 12px; font-size:0.75rem; font-weight:700; box-shadow:0 2px 12px rgba(0,0,0,0.15); white-space:nowrap; }
+    .wa-btn { background:#25D366; border-radius:50%; width:54px; height:54px; display:flex; align-items:center; justify-content:center; box-shadow:0 5px 20px rgba(37,211,102,0.5); cursor:pointer; animation:waPulse 2.2s infinite; text-decoration:none; }
+    @keyframes waPulse { 0%,100%{box-shadow:0 5px 20px rgba(37,211,102,0.5)} 50%{box-shadow:0 5px 32px rgba(37,211,102,0.8);transform:scale(1.08)} }
+    #toast { position:fixed; bottom:90px; left:50%; transform:translateX(-50%) translateY(20px); background:var(--grey-900); color:#fff; border-radius:12px; padding:10px 20px; font-size:0.82rem; font-weight:600; z-index:9999; opacity:0; transition:opacity 0.3s,transform 0.3s; pointer-events:none; white-space:nowrap; }
+    #toast.show { opacity:1; transform:translateX(-50%) translateY(0); }
+    .flash-wrap { padding:8px 14px 0; }
+    .flash { border-radius:10px; padding:10px 16px; font-size:0.82rem; font-weight:600; margin-bottom:6px; }
+    .flash.success { background:#d1fae5; color:#065f46; }
+    .flash.error { background:#fee2e2; color:#991b1b; }
+    .flash.info { background:var(--sky-light); color:var(--sky-deep); }
+    .notif-badge { background:#ef4444; color:#fff; border-radius:50%; width:16px; height:16px; font-size:0.55rem; font-weight:800; display:flex; align-items:center; justify-content:center; position:absolute; top:4px; right:4px; }
+    .bni-wrap { position:relative; }
+  </style>
+</head>
+<body>
+<div class="india-stripe"></div>
+<header>
+  <a href="{{ url_for('main.index') }}" class="logo">जोगजोग <span>Jogajog</span><sub>INDIA</sub></a>
+  <div class="header-right">
+    <button class="btn-loc" id="locationBtn">📍 <span id="cityLabel">{{ city if city else 'Your City' }}</span></button>
+    {% if current_user.is_authenticated %}
+      <div class="bni-wrap">
+        <a href="{{ url_for('notifications.list_notifications') }}" class="hdr-icon">🔔
+          {% set unread = current_user.unread_notification_count() %}
+          {% if unread > 0 %}<span class="notif-badge">{{ unread }}</span>{% endif %}
+        </a>
+      </div>
+      <a href="{{ url_for('auth.logout') }}" class="btn-hdr">Logout</a>
+    {% else %}
+      <a href="{{ url_for('auth.login') }}" class="btn-hdr">🔐 Login</a>
+    {% endif %}
+  </div>
+</header>
+
+{% with messages = get_flashed_messages(with_categories=true) %}
+  {% if messages %}
+    <div class="flash-wrap">
+      {% for cat, msg in messages %}
+        <div class="flash {{ cat }}">{{ msg }}</div>
+      {% endfor %}
+    </div>
+  {% endif %}
+{% endwith %}
+
+{% block content %}{% endblock %}
+
+<div class="spacer"></div>
+
+<!-- BOTTOM NAV -->
+<nav class="bnav">
+  <a href="{{ url_for('main.index') }}" class="bni {% if request.endpoint == 'main.index' %}on{% endif %}">
+    <div class="bni-icon">🏠</div>Home
+  </a>
+  <a href="{{ url_for('main.search') }}" class="bni {% if request.endpoint == 'main.search' %}on{% endif %}">
+    <div class="bni-icon">🔍</div>Search
+  </a>
+  <a href="{{ url_for('main.all_vendors') }}" class="bni {% if request.endpoint == 'main.all_vendors' %}on{% endif %}">
+    <div class="bni-icon">🏪</div>Vendors
+  </a>
+  {% if current_user.is_authenticated %}
+  <a href="{{ url_for('bookings.list_bookings') }}" class="bni {% if request.blueprint == 'bookings' %}on{% endif %}">
+    <div class="bni-icon">📋</div>Bookings
+  </a>
+  <a href="{{ url_for('vendor.dashboard') if current_user.vendor_profile else url_for('vendor.register') }}" class="bni {% if request.blueprint == 'vendor' %}on{% endif %}">
+    <div class="bni-icon">👤</div>{{ 'Dashboard' if current_user.vendor_profile else 'Join' }}
+  </a>
+  {% else %}
+  <a href="{{ url_for('auth.login') }}" class="bni">
+    <div class="bni-icon">📋</div>Bookings
+  </a>
+  <a href="{{ url_for('vendor.register') }}" class="bni">
+    <div class="bni-icon">🏪</div>List Biz
+  </a>
+  {% endif %}
+</nav>
+
+<!-- WhatsApp Float -->
+<div class="wa-float">
+  <div class="wa-lbl">💬 Chat with us</div>
+  <a href="https://wa.me/919000000000?text=Hi%20Jogajog!" target="_blank" class="wa-btn" title="WhatsApp Jogajog">
+    <svg viewBox="0 0 32 32" width="28" height="28" fill="white"><path d="M16 2C8.268 2 2 8.268 2 16c0 2.478.643 4.804 1.77 6.823L2 30l7.38-1.732A13.93 13.93 0 0 0 16 30c7.732 0 14-6.268 14-14S23.732 2 16 2zm0 2c6.627 0 12 5.373 12 12S22.627 28 16 28a11.93 11.93 0 0 1-6.155-1.71l-.44-.264-4.548 1.068 1.1-4.43-.285-.455A11.93 11.93 0 0 1 4 16C4 9.373 9.373 4 16 4zm-3.03 5.055c-.22 0-.578.082-.882.41-.303.326-1.16 1.134-1.16 2.765s1.187 3.208 1.353 3.43c.165.22 2.33 3.556 5.647 4.847 2.787 1.099 3.354.881 3.96.826.607-.055 1.96-.801 2.235-1.575.276-.773.276-1.436.193-1.575-.082-.138-.303-.22-.634-.385-.33-.165-1.96-.968-2.263-1.078-.303-.11-.524-.165-.745.165-.22.33-.854 1.078-1.047 1.299-.193.22-.386.247-.716.082-.331-.165-1.396-.514-2.661-1.642-.984-.876-1.648-1.958-1.842-2.288-.193-.33-.02-.51.146-.674.15-.148.331-.386.496-.579.165-.192.22-.33.33-.55.11-.22.055-.413-.027-.579-.083-.165-.745-1.796-1.02-2.458-.275-.66-.55-.55-.745-.55z"/></svg>
+  </a>
+</div>
+
+<div id="toast"></div>
+<script src="{{ url_for('static', filename='js/main.js') }}"></script>
+{% block extra_js %}{% endblock %}
+<script>
+  // Location detection
+  document.getElementById('locationBtn').addEventListener('click', () => {
+    if (navigator.geolocation) {
+      navigator.geolocation.getCurrentPosition(pos => {
+        fetch(`https://nominatim.openstreetmap.org/reverse?lat=${pos.coords.latitude}&lon=${pos.coords.longitude}&format=json`)
+          .then(r => r.json()).then(d => {
+            const city = d.address.city || d.address.town || d.address.village || d.address.county || 'Detected';
+            document.getElementById('cityLabel').textContent = city;
+            showToast('📍 Location: ' + city);
+          }).catch(() => showToast('📍 Location detected'));
+      }, () => showToast('📍 Enable location for nearby results'));
+    }
+  });
+</script>
+</body>
+</html>

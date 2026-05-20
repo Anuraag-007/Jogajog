@@ -1,0 +1,44 @@
+{% extends "base.html" %}
+{% block title %}Notifications – Jogajog{% endblock %}
+{% block extra_css %}
+<style>
+  .notif-wrap{max-width:700px;margin:24px auto 80px;padding:0 16px;}
+  .page-title{font-family:'Baloo 2',cursive;font-size:1.4rem;font-weight:800;color:var(--grey-900);margin-bottom:16px;}
+  .notif-card{background:var(--white);border-radius:14px;padding:14px 16px;margin-bottom:8px;display:flex;gap:13px;align-items:flex-start;box-shadow:0 4px 12px rgba(0,0,0,0.04);transition:all 0.2s;}
+  .notif-card.unread{border-left:3px solid var(--sky);background:var(--sky-faint);}
+  .notif-icon{width:42px;height:42px;border-radius:12px;background:var(--sky-light);display:flex;align-items:center;justify-content:center;font-size:1.2rem;flex-shrink:0;}
+  .notif-info{flex:1;}
+  .notif-title{font-weight:700;font-size:0.87rem;color:var(--grey-900);margin-bottom:3px;}
+  .notif-msg{font-size:0.78rem;color:var(--grey-700);}
+  .notif-time{font-size:0.68rem;color:var(--grey-500);margin-top:5px;}
+  .empty-state{text-align:center;padding:48px 24px;color:var(--grey-500);}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="notif-wrap">
+  <div class="page-title">🔔 Notifications</div>
+  {% if notifications %}
+  {% for notif in notifications %}
+  <div class="notif-card {% if not notif.is_read %}unread{% endif %}">
+    <div class="notif-icon">{{ notif.icon }}</div>
+    <div class="notif-info">
+      <div class="notif-title">{{ notif.title }}</div>
+      <div class="notif-msg">{{ notif.message }}</div>
+      <div class="notif-time">{{ notif.created_at.strftime('%d %b %Y at %I:%M %p') }}</div>
+      {% if notif.link %}
+      <a href="{{ notif.link }}" style="font-size:0.72rem;color:var(--sky-dark);font-weight:600;text-decoration:none;">View →</a>
+      {% endif %}
+    </div>
+    {% if not notif.is_read %}<div style="width:8px;height:8px;border-radius:50%;background:var(--sky);flex-shrink:0;margin-top:4px;"></div>{% endif %}
+  </div>
+  {% endfor %}
+  {% else %}
+  <div class="empty-state">
+    <div style="font-size:2.5rem;">🔔</div>
+    <p style="font-weight:700;margin-top:8px;">No notifications yet</p>
+    <p style="font-size:0.82rem;margin-top:4px;">You'll be notified about bookings, enquiries, and messages</p>
+  </div>
+  {% endif %}
+</div>
+{% endblock %}

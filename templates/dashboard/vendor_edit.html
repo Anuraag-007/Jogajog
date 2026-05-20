@@ -1,0 +1,172 @@
+{% extends "base.html" %}
+{% block title %}Edit Profile – {{ vendor.business_name }}{% endblock %}
+{% block extra_css %}
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
+<style>
+  .edit-wrap{max-width:860px;margin:24px auto 80px;padding:0 16px;}
+  .edit-card{background:var(--white);border-radius:24px;box-shadow:0 12px 30px rgba(41,174,230,0.12);overflow:hidden;}
+  .edit-header{background:linear-gradient(135deg,var(--sky-light),var(--white));padding:24px 32px 18px;border-bottom:2px solid rgba(41,174,230,0.15);}
+  .edit-header h2{font-family:'Baloo 2',cursive;font-size:1.6rem;font-weight:800;color:var(--grey-900);}
+  .edit-body{padding:28px 32px 32px;}
+  .form-section{margin-bottom:28px;}
+  .section-label{font-weight:700;font-size:0.88rem;color:var(--sky-deep);margin-bottom:12px;padding-bottom:6px;border-bottom:1.5px solid var(--sky-light);}
+  .form-grid{display:grid;grid-template-columns:1fr 1fr;gap:18px;}
+  .full{grid-column:span 2;}
+  .input-group{display:flex;flex-direction:column;gap:6px;}
+  .input-group label{font-weight:600;font-size:0.82rem;color:var(--grey-700);}
+  .inp{width:100%;border:1.5px solid var(--grey-300);border-radius:12px;padding:11px 14px;font-size:0.87rem;font-family:'Poppins',sans-serif;outline:none;}
+  .inp:focus{border-color:var(--sky);box-shadow:0 0 0 3px rgba(41,174,230,0.1);}
+  select.inp{appearance:none;}
+  textarea.inp{resize:vertical;min-height:80px;}
+  .toggle-row{display:flex;align-items:center;justify-content:space-between;padding:10px 0;border-bottom:1px solid var(--grey-100);}
+  .toggle-label{font-weight:600;font-size:0.85rem;color:var(--grey-900);}
+  .toggle-switch{position:relative;display:inline-block;width:46px;height:24px;}
+  .toggle-switch input{opacity:0;width:0;height:0;}
+  .slider{position:absolute;cursor:pointer;top:0;left:0;right:0;bottom:0;background:var(--grey-300);transition:.3s;border-radius:24px;}
+  .slider:before{position:absolute;content:"";height:18px;width:18px;left:3px;bottom:3px;background:white;transition:.3s;border-radius:50%;}
+  input:checked+.slider{background:var(--sky);}
+  input:checked+.slider:before{transform:translateX(22px);}
+  #editMap{height:200px;border-radius:12px;margin-top:10px;}
+  .submit-row{display:flex;gap:12px;justify-content:flex-end;margin-top:8px;}
+  .btn-save{background:linear-gradient(105deg,var(--sky),var(--sky-dark));color:#fff;border:none;border-radius:40px;padding:12px 32px;font-weight:700;font-size:0.9rem;cursor:pointer;font-family:'Poppins',sans-serif;}
+  .btn-cancel{background:var(--grey-100);color:var(--grey-700);border:none;border-radius:40px;padding:12px 24px;font-weight:700;font-size:0.9rem;cursor:pointer;font-family:'Poppins',sans-serif;text-decoration:none;display:inline-flex;align-items:center;}
+  @media(max-width:640px){.form-grid{grid-template-columns:1fr;}.full{grid-column:span 1;}.edit-body{padding:20px;}}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="edit-wrap">
+  <div class="edit-card">
+    <div class="edit-header">
+      <h2>✏️ Edit Vendor Profile</h2>
+      <p style="font-size:0.85rem;color:var(--grey-700);margin-top:4px;">Update your business information</p>
+    </div>
+    <div class="edit-body">
+      <form method="POST" action="{{ url_for('vendor.edit_profile') }}" enctype="multipart/form-data">
+        <div class="form-section">
+          <div class="section-label">🏢 Business Info</div>
+          <div class="form-grid">
+            <div class="input-group">
+              <label>Business Name *</label>
+              <input type="text" name="business_name" class="inp" value="{{ vendor.business_name }}" required>
+            </div>
+            <div class="input-group">
+              <label>Category</label>
+              <select name="category_id" class="inp">
+                {% for cat in categories %}
+                <option value="{{ cat.id }}" {% if vendor.category_id == cat.id %}selected{% endif %}>{{ cat.icon }} {{ cat.name }}</option>
+                {% endfor %}
+              </select>
+            </div>
+            <div class="input-group full">
+              <label>Description *</label>
+              <textarea name="description" class="inp" required>{{ vendor.description }}</textarea>
+            </div>
+            <div class="input-group">
+              <label>Price Range</label>
+              <input type="text" name="price_range" class="inp" value="{{ vendor.price_range or '' }}">
+            </div>
+            <div class="input-group">
+              <label>Business Hours</label>
+              <input type="text" name="timings" class="inp" value="{{ vendor.timings or '' }}">
+            </div>
+          </div>
+        </div>
+
+        <div class="form-section">
+          <div class="section-label">📞 Contact</div>
+          <div class="form-grid">
+            <div class="input-group">
+              <label>Phone *</label>
+              <input type="tel" name="phone" class="inp" value="{{ vendor.phone }}" required>
+            </div>
+            <div class="input-group">
+              <label>Email</label>
+              <input type="email" name="email" class="inp" value="{{ vendor.email or '' }}">
+            </div>
+          </div>
+        </div>
+
+        <div class="form-section">
+          <div class="section-label">📍 Location</div>
+          <div class="form-grid">
+            <div class="input-group full">
+              <label>Address *</label>
+              <textarea name="address" class="inp" required>{{ vendor.address }}</textarea>
+            </div>
+            <div class="input-group">
+              <label>City *</label>
+              <input type="text" name="city" class="inp" value="{{ vendor.city }}" required>
+            </div>
+            <div class="input-group">
+              <label>Pincode</label>
+              <input type="text" name="pincode" class="inp" value="{{ vendor.pincode or '' }}">
+            </div>
+            <div class="input-group full">
+              <label>Service Areas</label>
+              <input type="text" name="service_areas" class="inp" value="{{ vendor.service_areas or '' }}">
+            </div>
+            <div class="input-group full">
+              <label>📌 Update Location on Map</label>
+              <div id="editMap"></div>
+              <input type="hidden" name="lat" id="editLat" value="{{ vendor.lat or '' }}">
+              <input type="hidden" name="lng" id="editLng" value="{{ vendor.lng or '' }}">
+            </div>
+          </div>
+        </div>
+
+        <div class="form-section">
+          <div class="section-label">📸 Profile Photo</div>
+          <input type="file" name="profile_image" class="inp" accept="image/*">
+          {% if vendor.profile_image %}
+          <div style="margin-top:8px;"><img src="{{ url_for('static', filename=vendor.profile_image) }}" style="height:60px;border-radius:8px;"></div>
+          {% endif %}
+        </div>
+
+        <div class="form-section">
+          <div class="section-label">⚙️ Features</div>
+          <div class="toggle-row">
+            <div class="toggle-label">📅 Accept Bookings</div>
+            <label class="toggle-switch">
+              <input type="checkbox" name="accept_bookings" {% if vendor.accept_bookings %}checked{% endif %}>
+              <span class="slider"></span>
+            </label>
+          </div>
+          <div class="toggle-row">
+            <div class="toggle-label">💬 Enable Chat</div>
+            <label class="toggle-switch">
+              <input type="checkbox" name="enable_chat" {% if vendor.enable_chat %}checked{% endif %}>
+              <span class="slider"></span>
+            </label>
+          </div>
+        </div>
+
+        <div class="submit-row">
+          <a href="{{ url_for('vendor.dashboard') }}" class="btn-cancel">Cancel</a>
+          <button type="submit" class="btn-save">💾 Save Changes</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script>
+  const lat = parseFloat(document.getElementById('editLat').value) || 20.5937;
+  const lng = parseFloat(document.getElementById('editLng').value) || 78.9629;
+  const map = L.map('editMap').setView([lat, lng], lat !== 20.5937 ? 15 : 5);
+  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { attribution: '© OpenStreetMap' }).addTo(map);
+  let marker;
+  if (lat !== 20.5937) {
+    marker = L.marker([lat, lng]).addTo(map);
+  }
+  map.on('click', e => {
+    if (marker) map.removeLayer(marker);
+    marker = L.marker([e.latlng.lat, e.latlng.lng]).addTo(map);
+    document.getElementById('editLat').value = e.latlng.lat;
+    document.getElementById('editLng').value = e.latlng.lng;
+  });
+</script>
+{% endblock %}

@@ -1,0 +1,152 @@
+{% extends "base.html" %}
+{% block title %}Search{% if query %}: {{ query }}{% endif %} – Jogajog{% endblock %}
+{% block extra_css %}
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
+<style>
+  .search-bar-wrap{background:linear-gradient(135deg,var(--sky-deep),var(--sky-dark));padding:12px 16px 14px;}
+  .search-form{display:flex;background:var(--white);border-radius:12px;overflow:hidden;box-shadow:0 4px 16px rgba(0,0,0,0.12);}
+  .search-form input{flex:1;border:none;outline:none;padding:11px 14px;font-size:0.9rem;font-family:'Poppins',sans-serif;}
+  .search-form button{background:var(--yellow);border:none;padding:11px 18px;font-size:1.1rem;cursor:pointer;}
+  .filters-strip{background:var(--white);padding:8px 14px;border-bottom:2px solid var(--sky-light);display:flex;gap:8px;overflow-x:auto;scrollbar-width:none;flex-wrap:nowrap;}
+  .filters-strip::-webkit-scrollbar{display:none;}
+  .filter-chip{flex-shrink:0;background:var(--grey-50);border:1.5px solid var(--grey-200);border-radius:20px;padding:5px 13px;font-size:0.73rem;font-weight:600;color:var(--grey-700);text-decoration:none;white-space:nowrap;}
+  .filter-chip.active{background:var(--sky);border-color:var(--sky);color:#fff;}
+  .results-wrap{padding:12px 14px 0;}
+  .results-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;}
+  .result-count{font-weight:700;color:var(--sky-dark);font-size:0.85rem;}
+  .map-toggle{background:var(--sky-light);border:none;color:var(--sky-deep);border-radius:20px;padding:6px 14px;font-size:0.75rem;font-weight:700;cursor:pointer;font-family:'Poppins',sans-serif;}
+  #searchMap{height:300px;border-radius:14px;margin-bottom:14px;display:none;border:1px solid var(--grey-100);}
+  .vendor-list{display:flex;flex-direction:column;gap:10px;padding-bottom:20px;}
+  .vendor-row{background:var(--white);border-radius:14px;padding:13px;display:flex;gap:12px;align-items:center;box-shadow:0 4px 12px rgba(0,0,0,0.05);text-decoration:none;transition:all 0.2s;}
+  .vendor-row:hover{transform:translateY(-2px);box-shadow:0 8px 20px rgba(41,174,230,0.15);}
+  .vr-icon{width:54px;height:54px;border-radius:12px;background:var(--sky-faint);display:flex;align-items:center;justify-content:center;font-size:1.6rem;flex-shrink:0;}
+  .vr-icon img{width:100%;height:100%;object-fit:cover;border-radius:12px;}
+  .vr-info{flex:1;min-width:0;}
+  .vr-name{font-weight:700;font-size:0.92rem;color:var(--grey-900);margin-bottom:2px;}
+  .vr-meta{font-size:0.73rem;color:var(--grey-500);margin-bottom:5px;}
+  .vr-tags{display:flex;gap:6px;flex-wrap:wrap;}
+  .vr-tag{background:var(--sky-light);color:var(--sky-deep);border-radius:20px;padding:2px 9px;font-size:0.65rem;font-weight:700;}
+  .vr-tag-green{background:#dcfce7;color:#166534;}
+  .vr-right{text-align:right;flex-shrink:0;}
+  .vr-rating{font-weight:800;font-size:0.9rem;color:var(--grey-900);}
+  .vr-stars{color:var(--yellow-dk);font-size:0.75rem;}
+  .sort-select{background:var(--white);border:1.5px solid var(--grey-300);border-radius:8px;padding:5px 10px;font-size:0.75rem;font-family:'Poppins',sans-serif;color:var(--grey-700);}
+</style>
+{% endblock %}
+
+{% block content %}
+<!-- SEARCH BAR -->
+<div class="search-bar-wrap">
+  <form action="{{ url_for('main.search') }}" method="GET" class="search-form">
+    <input type="text" name="q" value="{{ query }}" placeholder="Search vendors, services, areas..." autofocus>
+    {% if city %}<input type="hidden" name="city" value="{{ city }}">{% endif %}
+    {% if category_slug %}<input type="hidden" name="category" value="{{ category_slug }}">{% endif %}
+    <button type="submit">🔍</button>
+  </form>
+</div>
+
+<!-- FILTERS -->
+<div class="filters-strip">
+  <a href="{{ url_for('main.search', q=query, city=city) }}" class="filter-chip {% if not category_slug %}active{% endif %}">🏪 All</a>
+  {% for cat in categories %}
+  <a href="{{ url_for('main.search', q=query, city=city, category=cat.slug) }}" class="filter-chip {% if category_slug == cat.slug %}active{% endif %}">{{ cat.icon }} {{ cat.name }}</a>
+  {% endfor %}
+</div>
+
+<!-- RESULTS -->
+<div class="results-wrap">
+  <div class="results-header">
+    <div>
+      <span class="result-count">{{ total }} results</span>
+      {% if query %}<span style="font-size:0.8rem;color:var(--grey-500);"> for "{{ query }}"</span>{% endif %}
+      {% if city %}<span style="font-size:0.8rem;color:var(--grey-500);"> in {{ city }}</span>{% endif %}
+    </div>
+    <div style="display:flex;gap:8px;align-items:center;">
+      <button class="map-toggle" onclick="toggleMap()">🗺️ Map View</button>
+      <form method="GET" action="{{ url_for('main.search') }}" style="display:inline;">
+        <input type="hidden" name="q" value="{{ query }}">
+        <input type="hidden" name="city" value="{{ city }}">
+        <input type="hidden" name="category" value="{{ category_slug }}">
+        <select name="sort" class="sort-select" onchange="this.form.submit()">
+          <option value="rating" {% if sort == 'rating' %}selected{% endif %}>⭐ Best Rated</option>
+          <option value="reviews" {% if sort == 'reviews' %}selected{% endif %}>💬 Most Reviews</option>
+          <option value="newest" {% if sort == 'newest' %}selected{% endif %}>🆕 Newest</option>
+        </select>
+      </form>
+    </div>
+  </div>
+
+  <!-- MAP -->
+  <div id="searchMap"></div>
+
+  <!-- LIST -->
+  <div class="vendor-list">
+    {% for vendor in vendors %}
+    <a href="{{ url_for('vendor.profile', vendor_id=vendor.id) }}" class="vendor-row">
+      <div class="vr-icon">
+        {% if vendor.profile_image %}
+          <img src="{{ url_for('static', filename=vendor.profile_image) }}" alt="{{ vendor.business_name }}">
+        {% else %}
+          {{ vendor.category.icon if vendor.category else '🏪' }}
+        {% endif %}
+      </div>
+      <div class="vr-info">
+        <div class="vr-name">{{ vendor.business_name }}{% if vendor.is_verified %} <span style="font-size:0.7rem;">✅</span>{% endif %}</div>
+        <div class="vr-meta">{{ vendor.category.name if vendor.category else 'Service' }} • {{ vendor.city }}{% if vendor.price_range %} • {{ vendor.price_range }}{% endif %}</div>
+        <div class="vr-tags">
+          {% if vendor.is_verified %}<span class="vr-tag">✓ Verified</span>{% endif %}
+          {% if vendor.accept_bookings %}<span class="vr-tag vr-tag-green">📅 Bookable</span>{% endif %}
+          {% if vendor.enable_chat %}<span class="vr-tag">💬 Chat</span>{% endif %}
+          {% if vendor.listing_tier == 'featured' %}<span class="vr-tag" style="background:var(--yellow-lt);color:var(--yellow-dk);">⭐ Featured</span>{% endif %}
+        </div>
+      </div>
+      <div class="vr-right">
+        {% if vendor.avg_rating > 0 %}
+        <div class="vr-rating">{{ vendor.avg_rating }}</div>
+        <div class="vr-stars">{{ vendor.star_display }}</div>
+        <div style="font-size:0.65rem;color:var(--grey-500);">{{ vendor.review_count }} reviews</div>
+        {% endif %}
+      </div>
+    </a>
+    {% else %}
+    <div style="text-align:center;padding:48px 24px;color:var(--grey-500);background:var(--white);border-radius:14px;">
+      <div style="font-size:2.5rem;">🔍</div>
+      <p style="font-weight:700;margin-top:8px;">No results found</p>
+      <p style="font-size:0.82rem;margin-top:4px;">Try different keywords or browse categories</p>
+      <a href="{{ url_for('vendor.register') }}" style="display:inline-block;margin-top:14px;background:var(--sky);color:#fff;border-radius:40px;padding:9px 24px;font-weight:700;font-size:0.85rem;text-decoration:none;">List Your Business →</a>
+    </div>
+    {% endfor %}
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script>
+let mapInitialized = false;
+let leafletMap;
+function toggleMap() {
+  const mapDiv = document.getElementById('searchMap');
+  const isHidden = mapDiv.style.display === 'none' || !mapDiv.style.display;
+  mapDiv.style.display = isHidden ? 'block' : 'none';
+  if (isHidden && !mapInitialized) {
+    initMap();
+    mapInitialized = true;
+  }
+}
+function initMap() {
+  leafletMap = L.map('searchMap').setView([20.5937, 78.9629], 5);
+  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+    attribution: '© OpenStreetMap contributors', maxZoom: 19
+  }).addTo(leafletMap);
+  fetch('{{ url_for("main.vendors_map") }}')
+    .then(r => r.json()).then(vendors => {
+      vendors.forEach(v => {
+        const icon = L.divIcon({ html: `<div style="background:var(--sky);color:#fff;border-radius:50%;width:32px;height:32px;display:flex;align-items:center;justify-content:center;font-size:1rem;box-shadow:0 3px 8px rgba(0,0,0,0.25);">${v.icon}</div>`, iconSize:[32,32], className:'' });
+        L.marker([v.lat, v.lng], {icon}).addTo(leafletMap)
+          .bindPopup(`<a href="${v.url}" style="font-weight:700;color:var(--sky-dark);text-decoration:none;"><strong>${v.name}</strong><br><span style="font-size:0.75rem;">${v.category}</span></a>`);
+      });
+    });
+}
+</script>
+{% endblock %}

@@ -1,0 +1,55 @@
+{% extends "base.html" %}
+{% block title %}Login – Jogajog{% endblock %}
+{% block extra_css %}
+<style>
+  .auth-wrap{max-width:440px;margin:40px auto 80px;padding:0 20px;}
+  .auth-card{background:var(--white);border-radius:24px;box-shadow:0 20px 40px rgba(41,174,230,0.15);overflow:hidden;}
+  .auth-header{background:linear-gradient(135deg,var(--sky-deep),var(--sky));padding:32px;text-align:center;color:#fff;}
+  .auth-header h2{font-family:'Baloo 2',cursive;font-size:1.8rem;font-weight:800;margin-bottom:4px;}
+  .auth-header p{font-size:0.85rem;opacity:0.88;}
+  .auth-body{padding:32px 28px 28px;}
+  .inp-group{margin-bottom:18px;}
+  .inp-group label{display:block;font-weight:700;font-size:0.84rem;color:var(--grey-700);margin-bottom:7px;}
+  .inp{width:100%;border:1.5px solid var(--grey-300);border-radius:12px;padding:13px 16px;font-size:0.9rem;font-family:'Poppins',sans-serif;outline:none;transition:border-color 0.2s;}
+  .inp:focus{border-color:var(--sky);box-shadow:0 0 0 3px rgba(41,174,230,0.15);}
+  .btn-auth{width:100%;background:linear-gradient(105deg,var(--sky),var(--sky-dark));color:#fff;border:none;border-radius:40px;padding:14px;font-size:0.95rem;font-weight:700;cursor:pointer;font-family:'Poppins',sans-serif;margin-top:4px;transition:all 0.2s;}
+  .btn-auth:hover{transform:translateY(-2px);box-shadow:0 10px 20px rgba(41,174,230,0.3);}
+  .auth-footer{text-align:center;margin-top:20px;font-size:0.85rem;color:var(--grey-500);}
+  .auth-footer a{color:var(--sky-dark);font-weight:700;text-decoration:none;}
+  .remember-row{display:flex;align-items:center;gap:8px;margin-bottom:18px;font-size:0.84rem;color:var(--grey-700);}
+  .remember-row input{accent-color:var(--sky);}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="auth-wrap">
+  <div class="auth-card">
+    <div class="auth-header">
+      <div style="font-size:2.5rem;margin-bottom:8px;">🔐</div>
+      <h2>Welcome Back!</h2>
+      <p>Login to your Jogajog account</p>
+    </div>
+    <div class="auth-body">
+      <form method="POST" action="{{ url_for('auth.login') }}">
+        <div class="inp-group">
+          <label>📱 Mobile Number or Email</label>
+          <input type="text" name="identifier" class="inp" placeholder="+91 98765 43210 or email" required autofocus>
+        </div>
+        <div class="inp-group">
+          <label>🔒 Password</label>
+          <input type="password" name="password" class="inp" placeholder="Enter your password" required>
+        </div>
+        <div class="remember-row">
+          <input type="checkbox" name="remember" id="remember">
+          <label for="remember">Keep me logged in</label>
+        </div>
+        <button type="submit" class="btn-auth">Login to Jogajog →</button>
+      </form>
+      <div class="auth-footer">
+        <p>New to Jogajog? <a href="{{ url_for('auth.register') }}">Create free account</a></p>
+        <p style="margin-top:8px;">Want to list your business? <a href="{{ url_for('vendor.register') }}">Register as Vendor →</a></p>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

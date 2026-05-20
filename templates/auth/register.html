@@ -1,0 +1,65 @@
+{% extends "base.html" %}
+{% block title %}Create Account – Jogajog{% endblock %}
+{% block extra_css %}
+<style>
+  .auth-wrap{max-width:480px;margin:32px auto 80px;padding:0 20px;}
+  .auth-card{background:var(--white);border-radius:24px;box-shadow:0 20px 40px rgba(41,174,230,0.15);overflow:hidden;}
+  .auth-header{background:linear-gradient(135deg,var(--sky-deep),var(--sky));padding:28px;text-align:center;color:#fff;}
+  .auth-header h2{font-family:'Baloo 2',cursive;font-size:1.8rem;font-weight:800;margin-bottom:4px;}
+  .auth-header p{font-size:0.85rem;opacity:0.88;}
+  .auth-body{padding:28px 28px 24px;}
+  .form-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px;}
+  .inp-group{margin-bottom:16px;}
+  .inp-group label{display:block;font-weight:700;font-size:0.84rem;color:var(--grey-700);margin-bottom:7px;}
+  .inp{width:100%;border:1.5px solid var(--grey-300);border-radius:12px;padding:12px 14px;font-size:0.88rem;font-family:'Poppins',sans-serif;outline:none;transition:border-color 0.2s;}
+  .inp:focus{border-color:var(--sky);box-shadow:0 0 0 3px rgba(41,174,230,0.15);}
+  .btn-auth{width:100%;background:linear-gradient(105deg,var(--sky),var(--sky-dark));color:#fff;border:none;border-radius:40px;padding:14px;font-size:0.95rem;font-weight:700;cursor:pointer;font-family:'Poppins',sans-serif;transition:all 0.2s;}
+  .btn-auth:hover{transform:translateY(-2px);box-shadow:0 10px 20px rgba(41,174,230,0.3);}
+  .auth-footer{text-align:center;margin-top:18px;font-size:0.85rem;color:var(--grey-500);}
+  .auth-footer a{color:var(--sky-dark);font-weight:700;text-decoration:none;}
+  .full{grid-column:span 2;}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="auth-wrap">
+  <div class="auth-card">
+    <div class="auth-header">
+      <div style="font-size:2.5rem;margin-bottom:8px;">🎉</div>
+      <h2>Join Jogajog Free!</h2>
+      <p>Connect with 1000+ local services near you</p>
+    </div>
+    <div class="auth-body">
+      <form method="POST" action="{{ url_for('auth.register') }}">
+        <div class="form-grid">
+          <div class="inp-group full">
+            <label>👤 Your Full Name <span style="color:#e06c4e;">*</span></label>
+            <input type="text" name="name" class="inp" placeholder="Rahul Sharma" required autofocus>
+          </div>
+          <div class="inp-group">
+            <label>📱 Mobile Number <span style="color:#e06c4e;">*</span></label>
+            <input type="tel" name="phone" class="inp" placeholder="+91 98765 43210" required>
+          </div>
+          <div class="inp-group">
+            <label>🌆 Your City</label>
+            <input type="text" name="city" class="inp" placeholder="Mumbai">
+          </div>
+          <div class="inp-group full">
+            <label>✉️ Email (optional)</label>
+            <input type="email" name="email" class="inp" placeholder="rahul@example.com">
+          </div>
+          <div class="inp-group full">
+            <label>🔒 Create Password <span style="color:#e06c4e;">*</span></label>
+            <input type="password" name="password" class="inp" placeholder="Min 6 characters" required minlength="6">
+          </div>
+        </div>
+        <button type="submit" class="btn-auth">Create Free Account 🎉</button>
+      </form>
+      <div class="auth-footer">
+        <p>Already have an account? <a href="{{ url_for('auth.login') }}">Login here</a></p>
+        <p style="margin-top:8px;font-size:0.75rem;color:var(--grey-500);">By registering, you agree to our Terms of Service</p>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

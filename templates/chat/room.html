@@ -1,0 +1,121 @@
+{% extends "base.html" %}
+{% block title %}Chat – {{ room.vendor.business_name }}{% endblock %}
+{% block extra_css %}
+<style>
+  .chat-layout{max-width:700px;margin:0 auto;height:calc(100vh - 130px);display:flex;flex-direction:column;}
+  .chat-topbar{background:var(--white);padding:12px 16px;display:flex;align-items:center;gap:12px;border-bottom:2px solid var(--sky-light);flex-shrink:0;}
+  .chat-vendor-avatar{width:42px;height:42px;border-radius:50%;background:var(--sky-light);display:flex;align-items:center;justify-content:center;font-size:1.2rem;font-weight:800;color:var(--sky-deep);flex-shrink:0;}
+  .chat-vendor-avatar img{width:100%;height:100%;object-fit:cover;border-radius:50%;}
+  .chat-messages{flex:1;overflow-y:auto;padding:14px 16px;display:flex;flex-direction:column;gap:10px;background:var(--grey-50);}
+  .msg-bubble{max-width:72%;border-radius:16px;padding:10px 14px;font-size:0.87rem;line-height:1.45;word-break:break-word;}
+  .msg-mine{background:var(--sky);color:#fff;align-self:flex-end;border-bottom-right-radius:4px;}
+  .msg-theirs{background:var(--white);color:var(--grey-900);align-self:flex-start;border-bottom-left-radius:4px;box-shadow:0 2px 8px rgba(0,0,0,0.06);}
+  .msg-time{font-size:0.62rem;opacity:0.7;margin-top:4px;text-align:right;}
+  .msg-theirs .msg-time{text-align:left;}
+  .msg-sender{font-size:0.68rem;font-weight:700;color:var(--sky-dark);margin-bottom:3px;}
+  .chat-input-area{background:var(--white);padding:10px 14px;border-top:2px solid var(--sky-light);flex-shrink:0;display:flex;align-items:center;gap:10px;}
+  .chat-input{flex:1;border:1.5px solid var(--grey-300);border-radius:40px;padding:10px 16px;font-size:0.87rem;font-family:'Poppins',sans-serif;outline:none;}
+  .chat-input:focus{border-color:var(--sky);}
+  .send-btn{background:var(--sky);color:#fff;border:none;border-radius:50%;width:40px;height:40px;display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:1.1rem;flex-shrink:0;}
+  .send-btn:hover{background:var(--sky-dark);}
+  .typing-indicator{font-size:0.75rem;color:var(--grey-500);padding:0 16px 6px;}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="chat-layout">
+  <!-- TOP BAR -->
+  <div class="chat-topbar">
+    <a href="{{ url_for('chat.inbox') }}" style="color:var(--sky-dark);text-decoration:none;font-size:1.2rem;">←</a>
+    <div class="chat-vendor-avatar">
+      {% if room.vendor.profile_image %}
+        <img src="{{ url_for('static', filename=room.vendor.profile_image) }}" alt="">
+      {% else %}
+        {{ room.vendor.category.icon if room.vendor.category else '🏪' }}
+      {% endif %}
+    </div>
+    <div>
+      <div style="font-weight:700;font-size:0.9rem;">{{ room.vendor.business_name }}</div>
+      <div style="font-size:0.72rem;color:var(--grey-500);">{{ room.vendor.category.name if room.vendor.category else 'Vendor' }}</div>
+    </div>
+    <a href="{{ url_for('vendor.profile', vendor_id=room.vendor.id) }}" style="margin-left:auto;font-size:0.75rem;color:var(--sky-dark);font-weight:700;text-decoration:none;border:1.5px solid var(--sky);border-radius:20px;padding:4px 12px;">View Profile</a>
+  </div>
+
+  <!-- MESSAGES -->
+  <div class="chat-messages" id="chatMessages">
+    {% for msg in messages %}
+    <div style="display:flex;flex-direction:column;">
+      {% if msg.sender_id != current_user.id %}
+      <div class="msg-sender">{{ msg.sender.name }}</div>
+      {% endif %}
+      <div class="msg-bubble {% if msg.sender_id == current_user.id %}msg-mine{% else %}msg-theirs{% endif %}">
+        {{ msg.message }}
+        <div class="msg-time">{{ msg.timestamp.strftime('%I:%M %p') }}</div>
+      </div>
+    </div>
+    {% else %}
+    <div style="text-align:center;color:var(--grey-500);font-size:0.82rem;padding:20px;">
+      👋 Start the conversation!
+    </div>
+    {% endfor %}
+  </div>
+
+  <div class="typing-indicator" id="typingIndicator" style="display:none;">typing...</div>
+
+  <!-- INPUT -->
+  <div class="chat-input-area">
+    <input type="text" class="chat-input" id="messageInput" placeholder="Type a message..." autocomplete="off">
+    <button class="send-btn" id="sendBtn">➤</button>
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.7.2/socket.io.min.js"></script>
+<script>
+  const socket = io();
+  const roomId = {{ room.id }};
+  const myId = {{ current_user.id }};
+  const msgContainer = document.getElementById('chatMessages');
+  const msgInput = document.getElementById('messageInput');
+
+  socket.emit('join', { room_id: roomId });
+
+  function scrollBottom() {
+    msgContainer.scrollTop = msgContainer.scrollHeight;
+  }
+  scrollBottom();
+
+  function appendMessage(msg, isMine) {
+    const wrap = document.createElement('div');
+    wrap.style.display = 'flex';
+    wrap.style.flexDirection = 'column';
+    if (!isMine) {
+      const sender = document.createElement('div');
+      sender.className = 'msg-sender';
+      sender.textContent = msg.sender_name;
+      wrap.appendChild(sender);
+    }
+    const bubble = document.createElement('div');
+    bubble.className = 'msg-bubble ' + (isMine ? 'msg-mine' : 'msg-theirs');
+    bubble.innerHTML = `${msg.message}<div class="msg-time">${msg.timestamp}</div>`;
+    wrap.appendChild(bubble);
+    msgContainer.appendChild(wrap);
+    scrollBottom();
+  }
+
+  document.getElementById('sendBtn').addEventListener('click', sendMessage);
+  msgInput.addEventListener('keydown', e => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendMessage(); } });
+
+  function sendMessage() {
+    const text = msgInput.value.trim();
+    if (!text) return;
+    socket.emit('send_message', { room_id: roomId, message: text });
+    msgInput.value = '';
+  }
+
+  socket.on('receive_message', msg => {
+    appendMessage(msg, msg.sender_id === myId);
+  });
+</script>
+{% endblock %}

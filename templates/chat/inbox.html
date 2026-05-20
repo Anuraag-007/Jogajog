@@ -1,0 +1,65 @@
+{% extends "base.html" %}
+{% block title %}Chat Inbox – Jogajog{% endblock %}
+{% block extra_css %}
+<style>
+  .inbox-wrap{max-width:700px;margin:24px auto 80px;padding:0 16px;}
+  .inbox-header{font-family:'Baloo 2',cursive;font-size:1.4rem;font-weight:800;color:var(--grey-900);margin-bottom:16px;display:flex;align-items:center;gap:8px;}
+  .chat-list-item{background:var(--white);border-radius:14px;padding:14px 16px;margin-bottom:10px;display:flex;align-items:center;gap:14px;box-shadow:0 4px 14px rgba(0,0,0,0.05);text-decoration:none;transition:all 0.2s;cursor:pointer;}
+  .chat-list-item:hover{transform:translateY(-2px);box-shadow:0 8px 20px rgba(41,174,230,0.14);}
+  .chat-avatar{width:48px;height:48px;border-radius:50%;background:var(--sky-light);display:flex;align-items:center;justify-content:center;font-size:1.3rem;font-weight:800;color:var(--sky-deep);flex-shrink:0;}
+  .chat-info{flex:1;min-width:0;}
+  .chat-name{font-weight:700;font-size:0.9rem;color:var(--grey-900);margin-bottom:3px;}
+  .chat-preview{font-size:0.78rem;color:var(--grey-500);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+  .chat-meta{text-align:right;flex-shrink:0;}
+  .chat-time{font-size:0.68rem;color:var(--grey-500);}
+  .unread-badge{background:var(--sky);color:#fff;border-radius:50%;width:20px;height:20px;font-size:0.65rem;font-weight:800;display:flex;align-items:center;justify-content:center;margin-top:4px;margin-left:auto;}
+  .empty-state{text-align:center;padding:48px 24px;color:var(--grey-500);}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="inbox-wrap">
+  <div class="inbox-header">💬 Chat Inbox</div>
+  {% if rooms %}
+  {% for room in rooms %}
+  {% set last_msg = room.messages.order_by('timestamp desc').first() %}
+  {% set unread = room.unread_count(current_user.id) %}
+  <a href="{{ url_for('chat.room', room_id=room.id) }}" class="chat-list-item">
+    <div class="chat-avatar">
+      {% if current_user.id == room.user_id %}
+        {{ room.vendor.business_name[0] }}
+      {% else %}
+        {{ room.user.name[0] }}
+      {% endif %}
+    </div>
+    <div class="chat-info">
+      <div class="chat-name">
+        {% if current_user.id == room.user_id %}
+          {{ room.vendor.business_name }}
+          <span style="font-size:0.7rem;color:var(--grey-500);font-weight:400;"> • {{ room.vendor.category.name if room.vendor.category else '' }}</span>
+        {% else %}
+          {{ room.user.name }}
+        {% endif %}
+      </div>
+      <div class="chat-preview">
+        {% if last_msg %}{{ last_msg.message }}{% else %}No messages yet{% endif %}
+      </div>
+    </div>
+    <div class="chat-meta">
+      <div class="chat-time">
+        {% if last_msg %}{{ last_msg.timestamp.strftime('%d %b') }}{% endif %}
+      </div>
+      {% if unread > 0 %}<div class="unread-badge">{{ unread }}</div>{% endif %}
+    </div>
+  </a>
+  {% endfor %}
+  {% else %}
+  <div class="empty-state">
+    <div style="font-size:2.5rem;">💬</div>
+    <p style="font-weight:700;margin-top:8px;">No conversations yet</p>
+    <p style="font-size:0.82rem;margin-top:4px;">Start a chat by visiting a vendor's profile</p>
+    <a href="{{ url_for('main.all_vendors') }}" style="display:inline-block;margin-top:14px;background:var(--sky);color:#fff;border-radius:40px;padding:9px 24px;font-weight:700;font-size:0.85rem;text-decoration:none;">Browse Vendors →</a>
+  </div>
+  {% endif %}
+</div>
+{% endblock %}

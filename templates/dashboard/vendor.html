@@ -1,0 +1,219 @@
+{% extends "base.html" %}
+{% block title %}Vendor Dashboard – {{ vendor.business_name }}{% endblock %}
+{% block extra_css %}
+<style>
+  .dash-wrap{max-width:1100px;margin:24px auto 80px;padding:0 16px;}
+  .dash-hero{background:linear-gradient(135deg,var(--sky-deep),var(--sky));border-radius:20px;padding:24px;color:#fff;display:flex;align-items:center;gap:18px;margin-bottom:22px;box-shadow:0 8px 24px rgba(41,174,230,0.3);}
+  .dash-avatar{width:72px;height:72px;border-radius:50%;border:3px solid rgba(255,255,255,0.5);overflow:hidden;flex-shrink:0;background:rgba(255,255,255,0.2);display:flex;align-items:center;justify-content:center;font-size:2rem;}
+  .dash-avatar img{width:100%;height:100%;object-fit:cover;}
+  .dash-name{font-family:'Baloo 2',cursive;font-size:1.5rem;font-weight:800;}
+  .dash-meta{font-size:0.82rem;opacity:0.88;margin-top:3px;}
+  .dash-actions{margin-left:auto;display:flex;gap:8px;flex-wrap:wrap;}
+  .dbtn{border-radius:40px;padding:8px 18px;font-size:0.78rem;font-weight:700;cursor:pointer;font-family:'Poppins',sans-serif;text-decoration:none;border:none;display:inline-flex;align-items:center;gap:5px;}
+  .dbtn-white{background:#fff;color:var(--sky-deep);}
+  .dbtn-outline{background:rgba(255,255,255,0.15);color:#fff;border:1.5px solid rgba(255,255,255,0.4);}
+  .stats-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:22px;}
+  @media(max-width:640px){.stats-grid{grid-template-columns:repeat(2,1fr);}}
+  .stat-card{background:var(--white);border-radius:16px;padding:16px;box-shadow:0 4px 14px rgba(41,174,230,0.1);text-align:center;}
+  .stat-icon{font-size:1.8rem;margin-bottom:6px;}
+  .stat-num{font-family:'Baloo 2',cursive;font-size:1.8rem;font-weight:800;color:var(--sky-dark);}
+  .stat-label{font-size:0.72rem;color:var(--grey-500);font-weight:600;}
+  .section-card{background:var(--white);border-radius:18px;padding:20px;box-shadow:0 4px 14px rgba(0,0,0,0.05);margin-bottom:18px;}
+  .section-title{font-family:'Baloo 2',cursive;font-size:1.1rem;font-weight:700;color:var(--grey-900);margin-bottom:14px;display:flex;align-items:center;justify-content:space-between;gap:8px;}
+  .sec-link{font-size:0.75rem;color:var(--sky-dark);font-weight:600;text-decoration:none;}
+  .item-row{display:flex;align-items:flex-start;gap:12px;padding:10px 0;border-bottom:1px solid var(--grey-100);}
+  .item-row:last-child{border-bottom:none;}
+  .item-icon{width:36px;height:36px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:1.1rem;flex-shrink:0;}
+  .item-info{flex:1;min-width:0;}
+  .item-name{font-weight:700;font-size:0.85rem;color:var(--grey-900);margin-bottom:2px;}
+  .item-meta{font-size:0.72rem;color:var(--grey-500);}
+  .status-badge{border-radius:20px;padding:3px 10px;font-size:0.65rem;font-weight:700;white-space:nowrap;}
+  .s-pending{background:#fef9c3;color:#854d0e;}
+  .s-confirmed{background:var(--sky-light);color:var(--sky-deep);}
+  .s-completed{background:#dcfce7;color:#166534;}
+  .s-cancelled{background:#fee2e2;color:#991b1b;}
+  .feature-row{display:flex;align-items:center;justify-content:space-between;padding:12px 0;border-bottom:1px solid var(--grey-100);}
+  .feature-row:last-child{border-bottom:none;}
+  .toggle-switch{position:relative;display:inline-block;width:46px;height:24px;}
+  .toggle-switch input{opacity:0;width:0;height:0;}
+  .slider{position:absolute;cursor:pointer;top:0;left:0;right:0;bottom:0;background:var(--grey-300);transition:.3s;border-radius:24px;}
+  .slider:before{position:absolute;content:"";height:18px;width:18px;left:3px;bottom:3px;background:white;transition:.3s;border-radius:50%;}
+  input:checked + .slider{background:var(--sky);}
+  input:checked + .slider:before{transform:translateX(22px);}
+  .two-col{display:grid;grid-template-columns:1fr 1fr;gap:16px;}
+  @media(max-width:680px){.two-col{grid-template-columns:1fr;}.dash-hero{flex-wrap:wrap;}.dash-actions{margin-left:0;}}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="dash-wrap">
+  <!-- HERO -->
+  <div class="dash-hero">
+    <div class="dash-avatar">
+      {% if vendor.profile_image %}<img src="{{ url_for('static', filename=vendor.profile_image) }}" alt="">{% else %}{{ vendor.category.icon if vendor.category else '🏪' }}{% endif %}
+    </div>
+    <div>
+      <div class="dash-name">{{ vendor.business_name }}</div>
+      <div class="dash-meta">
+        {{ vendor.category.name if vendor.category else 'Service' }} • {{ vendor.city or 'Your City' }}
+        {% if vendor.is_verified %} • ✅ Verified{% endif %}
+        {% if vendor.avg_rating > 0 %} • ⭐ {{ vendor.avg_rating }}{% endif %}
+      </div>
+      <div class="dash-meta" style="margin-top:4px;">{{ vendor.listing_tier|upper }} listing • {{ vendor.view_count }} profile views</div>
+    </div>
+    <div class="dash-actions">
+      <a href="{{ url_for('vendor.profile', vendor_id=vendor.id) }}" class="dbtn dbtn-white">👁 View Profile</a>
+      <a href="{{ url_for('vendor.edit_profile') }}" class="dbtn dbtn-outline">✏️ Edit</a>
+    </div>
+  </div>
+
+  <!-- STATS -->
+  <div class="stats-grid">
+    <div class="stat-card">
+      <div class="stat-icon">📩</div>
+      <div class="stat-num">{{ vendor.enquiries.count() }}</div>
+      <div class="stat-label">Enquiries</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-icon">📅</div>
+      <div class="stat-num">{{ vendor.bookings.count() }}</div>
+      <div class="stat-label">Bookings</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-icon">⭐</div>
+      <div class="stat-num">{{ vendor.review_count }}</div>
+      <div class="stat-label">Reviews</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-icon">👁</div>
+      <div class="stat-num">{{ vendor.view_count }}</div>
+      <div class="stat-label">Profile Views</div>
+    </div>
+  </div>
+
+  <div class="two-col">
+    <!-- LEFT COLUMN -->
+    <div>
+      <!-- FEATURES TOGGLE -->
+      <div class="section-card">
+        <div class="section-title">⚙️ Features</div>
+        <div class="feature-row">
+          <div>
+            <div style="font-weight:700;font-size:0.87rem;">📅 Accept Bookings</div>
+            <div style="font-size:0.72rem;color:var(--grey-500);">Let customers book your service</div>
+          </div>
+          <form action="{{ url_for('vendor.edit_profile') }}" method="POST" style="display:inline;">
+            <label class="toggle-switch">
+              <input type="checkbox" {% if vendor.accept_bookings %}checked{% endif %} onchange="this.form.submit()" name="accept_bookings_toggle">
+              <span class="slider"></span>
+            </label>
+          </form>
+        </div>
+        <div class="feature-row">
+          <div>
+            <div style="font-weight:700;font-size:0.87rem;">💬 In-App Chat</div>
+            <div style="font-size:0.72rem;color:var(--grey-500);">Chat with customers in real-time</div>
+          </div>
+          <label class="toggle-switch">
+            <input type="checkbox" {% if vendor.enable_chat %}checked{% endif %}>
+            <span class="slider"></span>
+          </label>
+        </div>
+        <div class="feature-row">
+          <div>
+            <div style="font-weight:700;font-size:0.87rem;">✅ Verified Status</div>
+            <div style="font-size:0.72rem;color:var(--grey-500);">{% if vendor.is_verified %}Partner verified by Jogajog{% else %}Verification pending{% endif %}</div>
+          </div>
+          <span style="font-size:1.2rem;">{% if vendor.is_verified %}✅{% else %}⏳{% endif %}</span>
+        </div>
+      </div>
+
+      <!-- RECENT ENQUIRIES -->
+      <div class="section-card">
+        <div class="section-title">📩 Recent Enquiries <span class="sec-link">{{ vendor.enquiries.count() }} total</span></div>
+        {% for enq in recent_enquiries %}
+        <div class="item-row">
+          <div class="item-icon" style="background:var(--sky-faint);">📩</div>
+          <div class="item-info">
+            <div class="item-name">{{ enq.name }} • {{ enq.phone }}</div>
+            <div class="item-meta">{{ enq.message[:80] }}{% if enq.message|length > 80 %}...{% endif %}</div>
+            <div class="item-meta">{{ enq.created_at.strftime('%d %b %Y %I:%M %p') }}</div>
+          </div>
+          <span class="status-badge s-{{ enq.status }}">{{ enq.status }}</span>
+        </div>
+        {% else %}
+        <div style="text-align:center;color:var(--grey-500);font-size:0.85rem;padding:16px;">No enquiries yet</div>
+        {% endfor %}
+      </div>
+    </div>
+
+    <!-- RIGHT COLUMN -->
+    <div>
+      <!-- RECENT BOOKINGS -->
+      {% if vendor.accept_bookings %}
+      <div class="section-card">
+        <div class="section-title">📅 Recent Bookings</div>
+        {% for booking in recent_bookings %}
+        <div class="item-row">
+          <div class="item-icon" style="background:#f0fdf4;">📅</div>
+          <div class="item-info">
+            <div class="item-name">{{ booking.user.name }}</div>
+            <div class="item-meta">{{ booking.booking_date.strftime('%d %b %Y') }} {% if booking.booking_time %}at {{ booking.booking_time }}{% endif %}</div>
+            {% if booking.notes %}<div class="item-meta">{{ booking.notes[:60] }}</div>{% endif %}
+          </div>
+          <div style="display:flex;flex-direction:column;gap:4px;align-items:flex-end;">
+            <span class="status-badge s-{{ booking.status }}">{{ booking.status }}</span>
+            {% if booking.status == 'pending' %}
+            <form action="{{ url_for('vendor.update_booking_status', booking_id=booking.id) }}" method="POST">
+              <input type="hidden" name="status" value="confirmed">
+              <button type="submit" style="background:var(--sky);color:#fff;border:none;border-radius:6px;padding:3px 8px;font-size:0.62rem;font-weight:700;cursor:pointer;">Confirm</button>
+            </form>
+            {% endif %}
+          </div>
+        </div>
+        {% else %}
+        <div style="text-align:center;color:var(--grey-500);font-size:0.85rem;padding:16px;">No bookings yet</div>
+        {% endfor %}
+      </div>
+      {% endif %}
+
+      <!-- RECENT CHATS -->
+      {% if vendor.enable_chat %}
+      <div class="section-card">
+        <div class="section-title">💬 Recent Chats <a href="{{ url_for('chat.inbox') }}" class="sec-link">View All</a></div>
+        {% for chat_room in recent_chats %}
+        <div class="item-row">
+          <div class="item-icon" style="background:var(--sky-faint);">💬</div>
+          <div class="item-info">
+            <div class="item-name">{{ chat_room.user.name }}</div>
+            {% set last = chat_room.messages.order_by('timestamp desc').first() %}
+            {% if last %}<div class="item-meta">{{ last.message[:60] }}</div>{% endif %}
+          </div>
+          <a href="{{ url_for('chat.room', room_id=chat_room.id) }}" style="background:var(--sky);color:#fff;border-radius:8px;padding:5px 10px;font-size:0.7rem;font-weight:700;text-decoration:none;">Open</a>
+        </div>
+        {% else %}
+        <div style="text-align:center;color:var(--grey-500);font-size:0.85rem;padding:16px;">No chats yet</div>
+        {% endfor %}
+      </div>
+      {% endif %}
+
+      <!-- RECENT REVIEWS -->
+      <div class="section-card">
+        <div class="section-title">⭐ Recent Reviews</div>
+        {% for review in recent_reviews %}
+        <div class="item-row">
+          <div class="item-icon" style="background:var(--yellow-lt);">⭐</div>
+          <div class="item-info">
+            <div class="item-name">{{ review.user.name }} • {{ review.stars }}</div>
+            {% if review.comment %}<div class="item-meta">{{ review.comment[:80] }}</div>{% endif %}
+            <div class="item-meta">{{ review.created_at.strftime('%d %b %Y') }}</div>
+          </div>
+        </div>
+        {% else %}
+        <div style="text-align:center;color:var(--grey-500);font-size:0.85rem;padding:16px;">No reviews yet</div>
+        {% endfor %}
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

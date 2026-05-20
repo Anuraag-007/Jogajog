@@ -1,0 +1,118 @@
+{% extends "base.html" %}
+{% block title %}All Vendors · Jogajog{% endblock %}
+{% block extra_css %}
+<style>
+  .vendors-search{background:white;padding:14px 16px 8px;border-bottom:1px solid var(--grey-100);}
+  .filter-bar{display:flex;flex-wrap:wrap;align-items:center;gap:12px;margin-bottom:12px;}
+  .search-vendor{flex:2;background:var(--grey-50);border-radius:40px;display:flex;align-items:center;border:1px solid var(--grey-300);padding:0 12px;}
+  .search-vendor input{flex:1;border:none;background:transparent;padding:12px 4px;font-size:0.85rem;outline:none;font-family:'Poppins',sans-serif;}
+  .nearby-badge{background:var(--sky-light);padding:6px 16px;border-radius:40px;font-size:0.75rem;font-weight:600;color:var(--sky-deep);white-space:nowrap;}
+  .filter-pills{display:flex;gap:10px;overflow-x:auto;padding-bottom:6px;scrollbar-width:thin;}
+  .filter-pill{background:var(--white);border:1.5px solid var(--grey-300);border-radius:30px;padding:6px 18px;font-size:0.73rem;font-weight:600;white-space:nowrap;cursor:pointer;color:var(--grey-700);text-decoration:none;transition:0.15s;}
+  .filter-pill.active{background:var(--sky);border-color:var(--sky);color:white;}
+  .result-stats{display:flex;justify-content:space-between;align-items:baseline;margin-top:12px;margin-bottom:4px;font-size:0.8rem;color:var(--grey-500);}
+  .result-count{font-weight:700;color:var(--sky-dark);}
+  .vendor-grid-section{padding:8px 16px 20px;}
+  .vendor-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:16px;}
+  @media(min-width:580px){.vendor-grid{grid-template-columns:repeat(3,1fr);}}
+  @media(min-width:880px){.vendor-grid{grid-template-columns:repeat(4,1fr);}}
+  .vcard{background:var(--white);border-radius:var(--r);box-shadow:0 6px 14px rgba(0,0,0,0.05),0 2px 4px rgba(41,174,230,0.08);overflow:hidden;cursor:pointer;transition:transform 0.2s,box-shadow 0.2s;height:100%;display:flex;flex-direction:column;text-decoration:none;}
+  .vcard:hover{transform:translateY(-5px);box-shadow:0 14px 28px rgba(41,174,230,0.18);}
+  .vbanner{height:92px;display:flex;align-items:center;justify-content:center;font-size:2.8rem;position:relative;background-size:cover;}
+  .vbadge{position:absolute;top:8px;right:8px;background:var(--yellow);color:var(--grey-900);font-size:0.62rem;font-weight:800;border-radius:30px;padding:3px 10px;}
+  .vinfo{padding:12px 12px 14px;flex:1;}
+  .vname{font-weight:700;font-size:0.89rem;margin-bottom:4px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;color:var(--grey-900);}
+  .vtype{font-size:0.7rem;color:var(--grey-500);margin-bottom:8px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+  .vmeta{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:5px;}
+  .stars{color:var(--yellow-dk);font-size:0.8rem;font-weight:600;letter-spacing:1px;}
+  .vtag{background:var(--sky-light);color:var(--sky-deep);font-size:0.62rem;font-weight:700;border-radius:20px;padding:3px 8px;}
+  .vb1{background:linear-gradient(135deg,#d8f1fc,#90d8f5);} .vb2{background:linear-gradient(135deg,#fef8d0,#fce566);} .vb3{background:linear-gradient(135deg,#edf0f5,#cdd3de);} .vb4{background:linear-gradient(135deg,#beeaf8,#5ec9ee);} .vb5{background:linear-gradient(135deg,#fef3b0,#f5c518);} .vb6{background:linear-gradient(135deg,#e3f5fd,#a3dcf5);} .vb7{background:linear-gradient(135deg,#e4e8f0,#bdc5d4);} .vb8{background:linear-gradient(135deg,#fef8d0,#fde07a);} .vb9{background:linear-gradient(135deg,#c9e9fa,#82cef0);} .vb10{background:linear-gradient(135deg,#fff0bc,#fad65c);}
+  .empty-state{text-align:center;padding:48px 20px;background:var(--white);border-radius:28px;color:var(--grey-500);}
+  .cat-filter-scroll{display:flex;gap:8px;overflow-x:auto;padding:8px 16px 4px;scrollbar-width:none;background:var(--white);}
+  .cat-filter-scroll::-webkit-scrollbar{display:none;}
+  .cat-chip{flex-shrink:0;background:var(--grey-50);border:1.5px solid var(--grey-200);border-radius:20px;padding:5px 14px;font-size:0.73rem;font-weight:600;color:var(--grey-700);text-decoration:none;white-space:nowrap;}
+  .cat-chip.active{background:var(--sky);border-color:var(--sky);color:#fff;}
+</style>
+{% endblock %}
+
+{% block content %}
+<!-- SEARCH + FILTERS -->
+<div class="vendors-search">
+  <form method="GET" action="{{ url_for('main.all_vendors') }}">
+    <div class="filter-bar">
+      <div class="search-vendor">
+        <input type="text" name="q" value="{{ search_q }}" placeholder="🔍 Search vendors by name or category...">
+        <button type="submit" style="background:none;border:none;font-size:1.2rem;cursor:pointer;">🔍</button>
+      </div>
+      <div class="nearby-badge">📍 Near you</div>
+    </div>
+    <div class="filter-pills">
+      <a href="{{ url_for('main.all_vendors') }}{% if search_q %}?q={{ search_q }}{% endif %}" class="filter-pill {% if filter_pill == 'all' %}active{% endif %}">All Vendors</a>
+      <a href="{{ url_for('main.all_vendors') }}?filter=verified{% if search_q %}&q={{ search_q }}{% endif %}" class="filter-pill {% if filter_pill == 'verified' %}active{% endif %}">✅ Verified Only</a>
+      <a href="{{ url_for('main.all_vendors') }}?filter=rating{% if search_q %}&q={{ search_q }}{% endif %}" class="filter-pill {% if filter_pill == 'rating' %}active{% endif %}">⭐ 4.5+ Rating</a>
+    </div>
+  </form>
+  <div class="result-stats">
+    <span><span class="result-count">{{ vendors.total }}</span> vendors near you</span>
+    <span style="font-size:0.7rem;">✨ Trusted by locals</span>
+  </div>
+</div>
+
+<!-- CATEGORY QUICK FILTER -->
+<div class="cat-filter-scroll">
+  <a href="{{ url_for('main.all_vendors') }}" class="cat-chip {% if not cat_slug %}active{% endif %}">🏪 All</a>
+  {% for cat in categories %}
+  <a href="{{ url_for('main.all_vendors') }}?category={{ cat.slug }}" class="cat-chip {% if cat_slug == cat.slug %}active{% endif %}">{{ cat.icon }} {{ cat.name }}</a>
+  {% endfor %}
+</div>
+
+<!-- VENDOR GRID -->
+<div class="vendor-grid-section">
+  {% set vbgs = ['vb1','vb2','vb3','vb4','vb5','vb6','vb7','vb8','vb9','vb10'] %}
+  {% if vendors.items %}
+  <div class="vendor-grid">
+    {% for vendor in vendors.items %}
+    <a href="{{ url_for('vendor.profile', vendor_id=vendor.id) }}" class="vcard">
+      <div class="vbanner {{ vbgs[loop.index0 % 10] }}">
+        {% if vendor.profile_image %}
+          <img src="{{ url_for('static', filename=vendor.profile_image) }}" style="width:100%;height:100%;object-fit:cover;" alt="{{ vendor.business_name }}">
+        {% else %}
+          <span style="font-size:2.5rem;">{{ vendor.category.icon if vendor.category else '🏪' }}</span>
+        {% endif %}
+        <div class="vbadge">{% if vendor.is_verified %}✓ Verified{% elif vendor.listing_tier == 'featured' %}⭐ Featured{% else %}Local{% endif %}</div>
+      </div>
+      <div class="vinfo">
+        <div class="vname">{{ vendor.business_name }}</div>
+        <div class="vtype">{{ vendor.category.name if vendor.category else 'Service' }}</div>
+        <div class="vmeta">
+          <div class="stars">{% if vendor.avg_rating > 0 %}{{ vendor.star_display }} <span style="font-size:0.7rem;color:var(--grey-700);">{{ vendor.avg_rating }}</span>{% else %}☆☆☆☆☆{% endif %}</div>
+          <span class="vtag">{{ vendor.city or 'Local' }}</span>
+        </div>
+      </div>
+    </a>
+    {% endfor %}
+  </div>
+
+  <!-- Pagination -->
+  {% if vendors.pages > 1 %}
+  <div style="display:flex;justify-content:center;gap:8px;margin-top:20px;flex-wrap:wrap;">
+    {% if vendors.has_prev %}
+    <a href="{{ url_for('main.all_vendors', page=vendors.prev_num, filter=filter_pill, category=cat_slug, q=search_q) }}" style="padding:7px 16px;border-radius:20px;background:var(--sky);color:#fff;text-decoration:none;font-size:0.8rem;font-weight:600;">← Prev</a>
+    {% endif %}
+    <span style="padding:7px 16px;font-size:0.8rem;color:var(--grey-500);">Page {{ vendors.page }} of {{ vendors.pages }}</span>
+    {% if vendors.has_next %}
+    <a href="{{ url_for('main.all_vendors', page=vendors.next_num, filter=filter_pill, category=cat_slug, q=search_q) }}" style="padding:7px 16px;border-radius:20px;background:var(--sky);color:#fff;text-decoration:none;font-size:0.8rem;font-weight:600;">Next →</a>
+    {% endif %}
+  </div>
+  {% endif %}
+
+  {% else %}
+  <div class="empty-state">
+    <div style="font-size:2.5rem;">🔍</div>
+    <p style="font-weight:700;margin-top:8px;">No vendors found</p>
+    <p style="font-size:0.8rem;margin-top:4px;">Try different keyword or filter</p>
+    <a href="{{ url_for('vendor.register') }}" style="display:inline-block;margin-top:14px;background:var(--sky);color:#fff;border-radius:40px;padding:8px 24px;font-weight:700;font-size:0.85rem;text-decoration:none;">Register Your Business →</a>
+  </div>
+  {% endif %}
+</div>
+{% endblock %}

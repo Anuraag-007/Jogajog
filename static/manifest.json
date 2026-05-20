@@ -1,0 +1,22 @@
+{
+  "name": "Jogajog – Your Local Everything",
+  "short_name": "Jogajog",
+  "description": "India's trusted local vendor & service platform",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#f5f7fa",
+  "theme_color": "#1789c0",
+  "orientation": "portrait",
+  "icons": [
+    {
+      "src": "/static/uploads/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "/static/uploads/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ]
+}
