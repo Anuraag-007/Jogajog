@@ -2,7 +2,7 @@ import os
 from flask import render_template, redirect, url_for, flash, request, jsonify, current_app
 from flask_login import login_required, current_user
 from app.vendor import vendor_bp
-from app.models import VendorProfile, Category, ListingImage, Service, Review
+from app.models import VendorProfile, Category, ListingImage, Service, Review, Booking, Enquiry, ChatRoom
 from app import db
 from app.utils import save_image, delete_image, create_notification
 
@@ -128,13 +128,13 @@ def dashboard():
         return redirect(url_for('vendor.register'))
     vendor = current_user.vendor_profile
     recent_bookings = vendor.bookings.order_by(
-        db.desc('created_at')).limit(5).all() if vendor.accept_bookings else []
+        Booking.created_at.desc()).limit(5).all() if vendor.accept_bookings else []
     recent_enquiries = vendor.enquiries.order_by(
-        db.desc('created_at')).limit(5).all()
+        Enquiry.created_at.desc()).limit(5).all()
     recent_reviews = vendor.reviews.order_by(
-        db.desc('created_at')).limit(5).all()
+        Review.created_at.desc()).limit(5).all()
     recent_chats = vendor.chat_rooms.order_by(
-        db.desc('last_message_at')).limit(5).all() if vendor.enable_chat else []
+        ChatRoom.last_message_at.desc()).limit(5).all() if vendor.enable_chat else []
     return render_template('dashboard/vendor.html',
                            vendor=vendor,
                            recent_bookings=recent_bookings,

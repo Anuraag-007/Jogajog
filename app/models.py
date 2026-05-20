@@ -172,6 +172,10 @@ class ChatRoom(db.Model):
             ChatMessage.sender_id != for_user_id
         ).count()
 
+    @property
+    def last_message(self):
+        return self.messages.order_by(ChatMessage.timestamp.desc()).first()
+
 
 class ChatMessage(db.Model):
     __tablename__ = 'chat_messages'

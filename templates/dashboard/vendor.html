@@ -186,8 +186,7 @@
           <div class="item-icon" style="background:var(--sky-faint);">💬</div>
           <div class="item-info">
             <div class="item-name">{{ chat_room.user.name }}</div>
-            {% set last = chat_room.messages.order_by('timestamp desc').first() %}
-            {% if last %}<div class="item-meta">{{ last.message[:60] }}</div>{% endif %}
+            {% if chat_room.last_message %}<div class="item-meta">{{ chat_room.last_message.message[:60] }}</div>{% endif %}
           </div>
           <a href="{{ url_for('chat.room', room_id=chat_room.id) }}" style="background:var(--sky);color:#fff;border-radius:8px;padding:5px 10px;font-size:0.7rem;font-weight:700;text-decoration:none;">Open</a>
         </div>
