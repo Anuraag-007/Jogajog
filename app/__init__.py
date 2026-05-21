@@ -1,5 +1,5 @@
 import os
-from flask import Flask
+from flask import Flask, session
 from flask_sqlalchemy import SQLAlchemy
 from flask_login import LoginManager
 from flask_socketio import SocketIO
@@ -32,6 +32,7 @@ def create_app(config_class=Config):
     from app.enquiries import enquiries_bp
     from app.notifications import notifications_bp
     from app.admin import admin_bp
+    from app.language import language_bp
 
     app.register_blueprint(auth_bp, url_prefix='/auth')
     app.register_blueprint(main_bp)
@@ -41,6 +42,16 @@ def create_app(config_class=Config):
     app.register_blueprint(enquiries_bp, url_prefix='/enquiry')
     app.register_blueprint(notifications_bp, url_prefix='/notifications')
     app.register_blueprint(admin_bp, url_prefix='/admin')
+    app.register_blueprint(language_bp, url_prefix='/lang')
+
+    # Translation helper available in every template as t('key')
+    from app.lang.translations import TRANSLATIONS
+    def t(key):
+        lang = session.get('lang', 'en')
+        return TRANSLATIONS.get(lang, TRANSLATIONS['en']).get(key, key)
+
+    app.jinja_env.globals['t'] = t
+    app.jinja_env.globals['get_lang'] = lambda: session.get('lang', 'en')
 
     os.makedirs(os.path.join(app.config['UPLOAD_FOLDER'], 'vendors'), exist_ok=True)
 

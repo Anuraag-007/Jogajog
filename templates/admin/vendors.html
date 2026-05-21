@@ -3,8 +3,8 @@
 {% block extra_css %}
 <style>
   .admin-wrap{max-width:1100px;margin:24px auto 80px;padding:0 16px;}
-  .page-title{font-family:'Baloo 2',cursive;font-size:1.4rem;font-weight:800;color:var(--grey-900);margin-bottom:16px;display:flex;align-items:center;gap:10px;}
-  .section-card{background:var(--white);border-radius:18px;padding:20px;box-shadow:0 4px 14px rgba(0,0,0,0.05);}
+  .page-title{font-family:'Baloo 2',cursive;font-size:1.4rem;font-weight:800;color:var(--grey-900);margin-bottom:16px;display:flex;align-items:center;gap:10px;flex-wrap:wrap;}
+  .section-card{background:var(--white);border-radius:18px;padding:20px;box-shadow:0 4px 14px rgba(0,0,0,0.05);overflow-x:auto;}
   table{width:100%;border-collapse:collapse;font-size:0.82rem;}
   th{text-align:left;font-weight:700;color:var(--grey-500);padding:8px 10px;border-bottom:2px solid var(--grey-100);font-size:0.72rem;text-transform:uppercase;}
   td{padding:10px 10px;border-bottom:1px solid var(--grey-100);color:var(--grey-700);}
@@ -12,6 +12,7 @@
   .action-btn{border-radius:6px;padding:4px 10px;font-size:0.7rem;font-weight:700;cursor:pointer;border:none;font-family:'Poppins',sans-serif;margin:2px;}
   .btn-verify{background:var(--sky);color:#fff;}
   .btn-toggle{background:var(--grey-100);color:var(--grey-700);}
+  .btn-danger{background:#fee2e2;color:#991b1b;}
   .badge-verified{background:#dcfce7;color:#166534;border-radius:20px;padding:2px 8px;font-size:0.65rem;font-weight:700;}
   .badge-pending{background:#fef9c3;color:#854d0e;border-radius:20px;padding:2px 8px;font-size:0.65rem;font-weight:700;}
 </style>
@@ -20,12 +21,18 @@
 {% block content %}
 <div class="admin-wrap">
   <div class="page-title">
-    🏪 Manage Vendors
-    <a href="{{ url_for('admin.dashboard') }}" style="font-size:0.8rem;color:var(--sky-dark);font-weight:600;text-decoration:none;border:1.5px solid var(--sky);border-radius:20px;padding:4px 12px;">← Dashboard</a>
+    🏪 {{ t('manage_vendors') }}
+    <a href="{{ url_for('admin.dashboard') }}" style="font-size:0.8rem;color:var(--sky-dark);font-weight:600;text-decoration:none;border:1.5px solid var(--sky);border-radius:20px;padding:4px 12px;">← {{ t('admin_dashboard') }}</a>
+    <a href="{{ url_for('admin.users') }}" style="font-size:0.8rem;color:var(--sky-dark);font-weight:600;text-decoration:none;border:1.5px solid var(--sky);border-radius:20px;padding:4px 12px;">👥 {{ t('manage_users') }}</a>
   </div>
   <div class="section-card">
     <table>
-      <thead><tr><th>Business</th><th>Owner</th><th>Category</th><th>City</th><th>Status</th><th>Features</th><th>Actions</th></tr></thead>
+      <thead>
+        <tr>
+          <th>Business</th><th>Owner</th><th>Category</th><th>City</th>
+          <th>Status</th><th>Features</th><th>Actions</th>
+        </tr>
+      </thead>
       <tbody>
         {% for v in vendors.items %}
         <tr>
@@ -37,8 +44,8 @@
           <td>{{ v.category.icon if v.category else '' }} {{ v.category.name if v.category else '–' }}</td>
           <td>{{ v.city or '–' }}</td>
           <td>
-            {% if v.is_verified %}<span class="badge-verified">✓ Verified</span>{% else %}<span class="badge-pending">Pending</span>{% endif %}
-            {% if not v.is_active %}<br><span style="background:#fee2e2;color:#991b1b;border-radius:20px;padding:2px 8px;font-size:0.65rem;font-weight:700;">Inactive</span>{% endif %}
+            {% if v.is_verified %}<span class="badge-verified">{{ t('verified') }}</span>{% else %}<span class="badge-pending">{{ t('pending') }}</span>{% endif %}
+            {% if not v.is_active %}<br><span style="background:#fee2e2;color:#991b1b;border-radius:20px;padding:2px 8px;font-size:0.65rem;font-weight:700;">{{ t('inactive') }}</span>{% endif %}
           </td>
           <td>
             {% if v.accept_bookings %}<span style="font-size:0.68rem;color:#166534;">📅 Bookings</span><br>{% endif %}
@@ -46,11 +53,16 @@
           </td>
           <td>
             <form action="{{ url_for('admin.verify_vendor', vendor_id=v.id) }}" method="POST" style="display:inline;">
-              <button type="submit" class="action-btn btn-verify">{% if v.is_verified %}Unverify{% else %}Verify{% endif %}</button>
+              <button type="submit" class="action-btn btn-verify">{% if v.is_verified %}{{ t('unverify') }}{% else %}{{ t('verify') }}{% endif %}</button>
             </form>
             <form action="{{ url_for('admin.toggle_vendor', vendor_id=v.id) }}" method="POST" style="display:inline;">
-              <button type="submit" class="action-btn btn-toggle">{% if v.is_active %}Deactivate{% else %}Activate{% endif %}</button>
+              <button type="submit" class="action-btn btn-toggle">{% if v.is_active %}{{ t('deactivate') }}{% else %}{{ t('activate') }}{% endif %}</button>
             </form>
+            {% if current_user.is_super_admin %}
+            <form action="{{ url_for('admin.delete_vendor', vendor_id=v.id) }}" method="POST" style="display:inline;" onsubmit="return confirm('Permanently delete {{ v.business_name }}? This cannot be undone.')">
+              <button type="submit" class="action-btn btn-danger">🗑️ {{ t('delete_vendor') }}</button>
+            </form>
+            {% endif %}
           </td>
         </tr>
         {% endfor %}
@@ -58,9 +70,9 @@
     </table>
     {% if vendors.pages > 1 %}
     <div style="display:flex;justify-content:center;gap:8px;margin-top:16px;">
-      {% if vendors.has_prev %}<a href="{{ url_for('admin.vendors', page=vendors.prev_num) }}" style="padding:6px 14px;border-radius:20px;background:var(--sky);color:#fff;text-decoration:none;font-size:0.8rem;font-weight:600;">← Prev</a>{% endif %}
+      {% if vendors.has_prev %}<a href="{{ url_for('admin.vendors', page=vendors.prev_num) }}" style="padding:6px 14px;border-radius:20px;background:var(--sky);color:#fff;text-decoration:none;font-size:0.8rem;font-weight:600;">{{ t('prev') }}</a>{% endif %}
       <span style="padding:6px 14px;font-size:0.8rem;color:var(--grey-500);">{{ vendors.page }}/{{ vendors.pages }}</span>
-      {% if vendors.has_next %}<a href="{{ url_for('admin.vendors', page=vendors.next_num) }}" style="padding:6px 14px;border-radius:20px;background:var(--sky);color:#fff;text-decoration:none;font-size:0.8rem;font-weight:600;">Next →</a>{% endif %}
+      {% if vendors.has_next %}<a href="{{ url_for('admin.vendors', page=vendors.next_num) }}" style="padding:6px 14px;border-radius:20px;background:var(--sky);color:#fff;text-decoration:none;font-size:0.8rem;font-weight:600;">{{ t('next') }}</a>{% endif %}
     </div>
     {% endif %}
   </div>

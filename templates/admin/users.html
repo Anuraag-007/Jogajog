@@ -1,0 +1,97 @@
+{% extends "base.html" %}
+{% block title %}Manage Users – Admin{% endblock %}
+{% block extra_css %}
+<style>
+  .admin-wrap{max-width:1100px;margin:24px auto 80px;padding:0 16px;}
+  .page-title{font-family:'Baloo 2',cursive;font-size:1.4rem;font-weight:800;color:var(--grey-900);margin-bottom:16px;display:flex;align-items:center;gap:10px;flex-wrap:wrap;}
+  .section-card{background:var(--white);border-radius:18px;padding:20px;box-shadow:0 4px 14px rgba(0,0,0,0.05);overflow-x:auto;}
+  table{width:100%;border-collapse:collapse;font-size:0.82rem;}
+  th{text-align:left;font-weight:700;color:var(--grey-500);padding:8px 10px;border-bottom:2px solid var(--grey-100);font-size:0.72rem;text-transform:uppercase;}
+  td{padding:10px 10px;border-bottom:1px solid var(--grey-100);color:var(--grey-700);}
+  tr:last-child td{border-bottom:none;}
+  .action-btn{border-radius:6px;padding:4px 10px;font-size:0.7rem;font-weight:700;cursor:pointer;border:none;font-family:'Poppins',sans-serif;margin:2px;}
+  .btn-danger{background:#fee2e2;color:#991b1b;}
+  .btn-sky{background:var(--sky);color:#fff;}
+  .btn-yellow{background:var(--yellow);color:var(--grey-900);}
+  .role-badge{border-radius:20px;padding:2px 8px;font-size:0.65rem;font-weight:700;}
+  .role-user{background:#f1f5f9;color:#475569;}
+  .role-vendor{background:#ede9fe;color:#5b21b6;}
+  .role-admin{background:#dbeafe;color:#1e40af;}
+  .role-super_admin{background:linear-gradient(90deg,#fbbf24,#f59e0b);color:#78350f;}
+  .role-select{border:1.5px solid var(--grey-200);border-radius:6px;padding:3px 6px;font-size:0.72rem;font-family:'Poppins',sans-serif;}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="admin-wrap">
+  <div class="page-title">
+    👥 {{ t('manage_users') }}
+    <a href="{{ url_for('admin.dashboard') }}" style="font-size:0.8rem;color:var(--sky-dark);font-weight:600;text-decoration:none;border:1.5px solid var(--sky);border-radius:20px;padding:4px 12px;">← {{ t('admin_dashboard') }}</a>
+    <a href="{{ url_for('admin.vendors') }}" style="font-size:0.8rem;color:var(--sky-dark);font-weight:600;text-decoration:none;border:1.5px solid var(--sky);border-radius:20px;padding:4px 12px;">🏪 {{ t('manage_vendors') }}</a>
+  </div>
+  <div class="section-card">
+    <table>
+      <thead>
+        <tr>
+          <th>Name</th>
+          <th>Phone / Email</th>
+          <th>City</th>
+          <th>Role</th>
+          <th>Joined</th>
+          {% if current_user.is_super_admin %}<th>Actions</th>{% endif %}
+        </tr>
+      </thead>
+      <tbody>
+        {% for u in users.items %}
+        <tr>
+          <td style="font-weight:700;">{{ u.name }}</td>
+          <td>
+            {{ u.phone }}<br>
+            {% if u.email %}<span style="font-size:0.7rem;color:var(--grey-500);">{{ u.email }}</span>{% endif %}
+          </td>
+          <td>{{ u.city or '–' }}</td>
+          <td>
+            <span class="role-badge role-{{ u.role }}">
+              {% if u.role == 'super_admin' %}👑 {{ t('super_admin') }}
+              {% elif u.role == 'admin' %}🛡️ Admin
+              {% elif u.role == 'vendor' %}🏪 Vendor
+              {% else %}👤 User{% endif %}
+            </span>
+          </td>
+          <td style="font-size:0.72rem;">{{ u.created_at.strftime('%d %b %Y') }}</td>
+          {% if current_user.is_super_admin %}
+          <td>
+            {% if u.id != current_user.id %}
+            <!-- Role change -->
+            <form action="{{ url_for('admin.set_role', user_id=u.id) }}" method="POST" style="display:inline-flex;gap:4px;align-items:center;flex-wrap:wrap;">
+              <select name="role" class="role-select">
+                <option value="user" {% if u.role=='user' %}selected{% endif %}>User</option>
+                <option value="vendor" {% if u.role=='vendor' %}selected{% endif %}>Vendor</option>
+                <option value="admin" {% if u.role=='admin' %}selected{% endif %}>Admin</option>
+                <option value="super_admin" {% if u.role=='super_admin' %}selected{% endif %}>Super Admin</option>
+              </select>
+              <button type="submit" class="action-btn btn-sky">Set</button>
+            </form>
+            <!-- Delete -->
+            <form action="{{ url_for('admin.delete_user', user_id=u.id) }}" method="POST" style="display:inline;" onsubmit="return confirm('Permanently delete {{ u.name }}? This cannot be undone.')">
+              <button type="submit" class="action-btn btn-danger">🗑️ {{ t('delete_user') }}</button>
+            </form>
+            {% else %}
+            <span style="font-size:0.72rem;color:var(--grey-400);">— you —</span>
+            {% endif %}
+          </td>
+          {% endif %}
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+    {% if users.pages > 1 %}
+    <div style="display:flex;justify-content:center;gap:8px;margin-top:16px;">
+      {% if users.has_prev %}<a href="{{ url_for('admin.users', page=users.prev_num) }}" style="padding:6px 14px;border-radius:20px;background:var(--sky);color:#fff;text-decoration:none;font-size:0.8rem;font-weight:600;">{{ t('prev') }}</a>{% endif %}
+      <span style="padding:6px 14px;font-size:0.8rem;color:var(--grey-500);">{{ users.page }}/{{ users.pages }}</span>
+      {% if users.has_next %}<a href="{{ url_for('admin.users', page=users.next_num) }}" style="padding:6px 14px;border-radius:20px;background:var(--sky);color:#fff;text-decoration:none;font-size:0.8rem;font-weight:600;">{{ t('next') }}</a>{% endif %}
+    </div>
+    {% endif %}
+  </div>
+</div>
+{% endblock %}

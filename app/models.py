@@ -16,7 +16,7 @@ class User(UserMixin, db.Model):
     phone = db.Column(db.String(15), unique=True, nullable=False)
     email = db.Column(db.String(120), unique=True, nullable=True)
     password_hash = db.Column(db.String(256))
-    role = db.Column(db.String(20), default='user')  # user, vendor, admin
+    role = db.Column(db.String(20), default='user')  # user, vendor, admin, super_admin
     city = db.Column(db.String(100))
     avatar = db.Column(db.String(500))
     is_active = db.Column(db.Boolean, default=True)
@@ -33,6 +33,14 @@ class User(UserMixin, db.Model):
 
     def unread_notification_count(self):
         return self.notifications.filter_by(is_read=False).count()
+
+    @property
+    def is_admin(self):
+        return self.role in ('admin', 'super_admin')
+
+    @property
+    def is_super_admin(self):
+        return self.role == 'super_admin'
 
     def __repr__(self):
         return f'<User {self.phone}>'

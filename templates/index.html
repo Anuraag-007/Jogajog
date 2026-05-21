@@ -82,25 +82,12 @@
 {% endblock %}
 
 {% block content %}
-<!-- LANGUAGE BAR -->
-<div class="lang-bar">
-  <button class="lang-btn active">English</button>
-  <button class="lang-btn">हिंदी</button>
-  <button class="lang-btn">বাংলা</button>
-  <button class="lang-btn">తెలుగు</button>
-  <button class="lang-btn">मराठी</button>
-  <button class="lang-btn">தமிழ்</button>
-  <button class="lang-btn">ગુજરાતી</button>
-  <button class="lang-btn">ಕನ್ನಡ</button>
-  <button class="lang-btn">മലയാളം</button>
-</div>
-
 <!-- SEARCH -->
 <div class="search-wrap">
-  <div class="search-label">🔍 What do you need today?</div>
+  <div class="search-label">🔍 {{ t('tagline') }}</div>
   <form action="{{ url_for('main.search') }}" method="GET">
     <div class="search-box">
-      <input type="text" name="q" id="searchInput" placeholder="Search plumber, doctor, shop..." autocomplete="off">
+      <input type="text" name="q" id="searchInput" placeholder="{{ t('search_placeholder') }}" autocomplete="off">
       <button type="button" class="voice-btn" id="voiceBtn" title="Voice Search">🎤</button>
       <button type="submit" class="search-btn">🔍</button>
       <button type="button" class="clear-btn" id="clearBtn">✕</button>
@@ -117,7 +104,7 @@
   </button>
   <a href="{{ url_for('vendor.register') }}" class="ab-btn ab-vendor">
     <span style="font-size:1.2rem">🏪</span>
-    <div><span class="abt-main">List Your Business</span><span class="abt-sub">Free listing, reach thousands</span></div>
+    <div><span class="abt-main">{{ t('join') }}</span><span class="abt-sub">Free listing, reach thousands</span></div>
   </a>
 </div>
 
@@ -159,8 +146,8 @@
 <!-- CATEGORIES -->
 <div class="section">
   <div class="sec-hdr">
-    <div class="sec-title">📌 Browse by Category <span class="pill">{{ categories|length }}</span></div>
-    <a href="{{ url_for('main.all_vendors') }}" class="see-all">See All</a>
+    <div class="sec-title">📌 {{ t('all_categories') }} <span class="pill">{{ categories|length }}</span></div>
+    <a href="{{ url_for('main.all_vendors') }}" class="see-all">{{ t('browse_all') }}</a>
   </div>
   <div class="fpills">
     <a href="{{ url_for('main.all_vendors') }}" class="fpill on">🏪 All</a>
@@ -186,8 +173,8 @@
 {% if featured_vendors %}
 <div class="section">
   <div class="sec-hdr">
-    <div class="sec-title">⭐ Featured Vendors <span class="pill">TOP</span></div>
-    <a href="{{ url_for('main.all_vendors') }}" class="see-all">View All</a>
+    <div class="sec-title">⭐ {{ t('featured_vendors') }} <span class="pill">TOP</span></div>
+    <a href="{{ url_for('main.all_vendors') }}" class="see-all">{{ t('see_all_vendors') }}</a>
   </div>
   <div class="vscroll">
     {% set vbgs = ['vb1','vb2','vb3','vb4','vb5','vb6','vb7','vb8'] %}
@@ -281,7 +268,7 @@ const voiceBtn = document.getElementById('voiceBtn');
 if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
   const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
   const recognition = new SR();
-  recognition.lang = 'en-IN';
+  recognition.lang = '{{ "hi-IN" if get_lang()=="hi" else "en-IN" }}';
   recognition.onresult = e => {
     searchInput.value = e.results[0][0].transcript;
     clearBtn.style.display = 'block';

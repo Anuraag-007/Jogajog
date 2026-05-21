@@ -1,5 +1,5 @@
 {% extends "base.html" %}
-{% block title %}Create Account – Jogajog{% endblock %}
+{% block title %}{{ t('register_title') }} – Jogajog{% endblock %}
 {% block extra_css %}
 <style>
   .auth-wrap{max-width:480px;margin:32px auto 80px;padding:0 20px;}
@@ -26,38 +26,37 @@
   <div class="auth-card">
     <div class="auth-header">
       <div style="font-size:2.5rem;margin-bottom:8px;">🎉</div>
-      <h2>Join Jogajog Free!</h2>
-      <p>Connect with 1000+ local services near you</p>
+      <h2>{{ t('register_title') }}</h2>
+      <p>{{ t('already_account') }} <a href="{{ url_for('auth.login') }}" style="color:var(--yellow);font-weight:700;">{{ t('sign_in') }}</a></p>
     </div>
     <div class="auth-body">
       <form method="POST" action="{{ url_for('auth.register') }}">
         <div class="form-grid">
           <div class="inp-group full">
-            <label>👤 Your Full Name <span style="color:#e06c4e;">*</span></label>
+            <label>👤 {{ t('name') }} *</label>
             <input type="text" name="name" class="inp" placeholder="Rahul Sharma" required autofocus>
           </div>
           <div class="inp-group">
-            <label>📱 Mobile Number <span style="color:#e06c4e;">*</span></label>
+            <label>📱 {{ t('phone') }} *</label>
             <input type="tel" name="phone" class="inp" placeholder="+91 98765 43210" required>
           </div>
           <div class="inp-group">
-            <label>🌆 Your City</label>
+            <label>🌆 {{ t('city') }}</label>
             <input type="text" name="city" class="inp" placeholder="Mumbai">
           </div>
           <div class="inp-group full">
-            <label>✉️ Email (optional)</label>
+            <label>✉️ {{ t('email') }}</label>
             <input type="email" name="email" class="inp" placeholder="rahul@example.com">
           </div>
           <div class="inp-group full">
-            <label>🔒 Create Password <span style="color:#e06c4e;">*</span></label>
+            <label>🔒 {{ t('password') }} *</label>
             <input type="password" name="password" class="inp" placeholder="Min 6 characters" required minlength="6">
           </div>
         </div>
-        <button type="submit" class="btn-auth">Create Free Account 🎉</button>
+        <button type="submit" class="btn-auth">{{ t('sign_up') }} 🎉</button>
       </form>
       <div class="auth-footer">
-        <p>Already have an account? <a href="{{ url_for('auth.login') }}">Login here</a></p>
-        <p style="margin-top:8px;font-size:0.75rem;color:var(--grey-500);">By registering, you agree to our Terms of Service</p>
+        <p>{{ t('already_account') }} <a href="{{ url_for('auth.login') }}">{{ t('sign_in') }}</a></p>
       </div>
     </div>
   </div>

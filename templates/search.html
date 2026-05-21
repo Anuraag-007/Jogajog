@@ -57,20 +57,20 @@
 <div class="results-wrap">
   <div class="results-header">
     <div>
-      <span class="result-count">{{ total }} results</span>
-      {% if query %}<span style="font-size:0.8rem;color:var(--grey-500);"> for "{{ query }}"</span>{% endif %}
+      <span class="result-count">{{ total }} {{ t('search_results') }}</span>
+      {% if query %}<span style="font-size:0.8rem;color:var(--grey-500);"> {{ t('results_for') }} "{{ query }}"</span>{% endif %}
       {% if city %}<span style="font-size:0.8rem;color:var(--grey-500);"> in {{ city }}</span>{% endif %}
     </div>
     <div style="display:flex;gap:8px;align-items:center;">
-      <button class="map-toggle" onclick="toggleMap()">🗺️ Map View</button>
+      <button class="map-toggle" onclick="toggleMap()">{{ t('show_map') }}</button>
       <form method="GET" action="{{ url_for('main.search') }}" style="display:inline;">
         <input type="hidden" name="q" value="{{ query }}">
         <input type="hidden" name="city" value="{{ city }}">
         <input type="hidden" name="category" value="{{ category_slug }}">
         <select name="sort" class="sort-select" onchange="this.form.submit()">
-          <option value="rating" {% if sort == 'rating' %}selected{% endif %}>⭐ Best Rated</option>
-          <option value="reviews" {% if sort == 'reviews' %}selected{% endif %}>💬 Most Reviews</option>
-          <option value="newest" {% if sort == 'newest' %}selected{% endif %}>🆕 Newest</option>
+          <option value="rating" {% if sort == 'rating' %}selected{% endif %}>{{ t('top_rated') }}</option>
+          <option value="reviews" {% if sort == 'reviews' %}selected{% endif %}>{{ t('most_reviewed') }}</option>
+          <option value="newest" {% if sort == 'newest' %}selected{% endif %}>{{ t('newest') }}</option>
         </select>
       </form>
     </div>
@@ -111,8 +111,8 @@
     {% else %}
     <div style="text-align:center;padding:48px 24px;color:var(--grey-500);background:var(--white);border-radius:14px;">
       <div style="font-size:2.5rem;">🔍</div>
-      <p style="font-weight:700;margin-top:8px;">No results found</p>
-      <p style="font-size:0.82rem;margin-top:4px;">Try different keywords or browse categories</p>
+      <p style="font-weight:700;margin-top:8px;">{{ t('no_results') }}</p>
+      <p style="font-size:0.82rem;margin-top:4px;">{{ t('try_different') }}</p>
       <a href="{{ url_for('vendor.register') }}" style="display:inline-block;margin-top:14px;background:var(--sky);color:#fff;border-radius:40px;padding:9px 24px;font-weight:700;font-size:0.85rem;text-decoration:none;">List Your Business →</a>
     </div>
     {% endfor %}
